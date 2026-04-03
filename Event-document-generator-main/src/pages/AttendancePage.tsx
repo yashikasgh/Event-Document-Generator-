@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Download, LoaderCircle, Upload } from "lucide-react";
 import { Link } from "react-router-dom";
 import { api, downloadBase64Pdf } from "@/lib/api";
+import { COLLEGE_BRAND } from "@/lib/clubs";
 
 interface Student {
   id: string;
@@ -18,8 +19,8 @@ const AttendancePage = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [eventTitle, setEventTitle] = useState("");
   const [clubName, setClubName] = useState("");
-  const [collegeName, setCollegeName] = useState("");
-  const [collegeAddress, setCollegeAddress] = useState("");
+  const [collegeName, setCollegeName] = useState(COLLEGE_BRAND.name);
+  const [collegeAddress, setCollegeAddress] = useState(COLLEGE_BRAND.address);
   const [year, setYear] = useState("");
   const [branch, setBranch] = useState("");
   const [division, setDivision] = useState("");

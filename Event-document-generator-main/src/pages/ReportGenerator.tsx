@@ -12,6 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import { api, downloadBase64Pdf } from "@/lib/api";
+import { COLLEGE_BRAND } from "@/lib/clubs";
 
 interface ReportState {
   collegeName: string;
@@ -31,8 +32,8 @@ interface ReportState {
 }
 
 const initialState: ReportState = {
-  collegeName: "",
-  collegeAddress: "",
+  collegeName: COLLEGE_BRAND.name,
+  collegeAddress: COLLEGE_BRAND.address,
   clubName: "",
   authorityName: "",
   eventTitle: "",
@@ -118,8 +119,8 @@ const ReportGenerator = () => {
         <motion.div className="space-y-4" initial={{ x: -30, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {[
-              ["collegeName", "College Name", "Pimpri Chinchwad College of Engineering"],
-              ["collegeAddress", "College Address", "Nigdi, Pune, Maharashtra"],
+              ["collegeName", "College Name", COLLEGE_BRAND.name],
+              ["collegeAddress", "College Address", COLLEGE_BRAND.address],
               ["clubName", "Club Name", "Coding Club"],
               ["authorityName", "Addressed To", "The Principal"],
               ["eventTitle", "Event Title", "AI Innovation Summit"],
