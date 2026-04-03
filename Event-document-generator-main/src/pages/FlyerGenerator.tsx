@@ -19,26 +19,26 @@ const themeOptions = [
 const styleOptions = ["Minimal Modern", "Glassmorphism", "Corporate"];
 const PCE_DEFAULT_NAME = "Pillai College of Engineering";
 
-const themeBackgrounds: Record<string, string[]> = {
-  Technical: ["/theme/technical/01.jpg", "/theme/technical/02.jpg"],
-  Cultural: ["/theme/cultural/01.jpg", "/theme/cultural/02.jpg"],
-  Gaming: ["/theme/gaming/01.jpg", "/theme/gaming/02.jpg"],
-  Business: ["/theme/business/01.jpg", "/theme/business/02.jpg"],
-  Hackathon: ["/theme/hackathon/01.jpg", "/theme/hackathon/02.jpg"],
-  Workshop: ["/theme/workshop/01.jpg", "/theme/workshop/02.jpg"],
-  "AI & Machine Learning": ["/theme/ai-machine-learning/01.jpg", "/theme/ai-machine-learning/02.jpg"],
-  Cybersecurity: ["/theme/cybersecurity/01.jpg", "/theme/cybersecurity/02.jpg"],
-  Robotics: ["/theme/robotics/01.jpg", "/theme/robotics/02.jpg"],
-  "Startup & Innovation": ["/theme/startup-innovation/01.jpg", "/theme/startup-innovation/02.jpg"],
+const themeBackgrounds: Record<string, string[][]> = {
+  Technical: [["/theme/technical/01.jpg", "/theme/technical/01.jpeg"], ["/theme/technical/02.jpg", "/theme/technical/02.jpeg"]],
+  Cultural: [["/theme/cultural/01.jpg", "/theme/cultural/01.jpeg"], ["/theme/cultural/02.jpg", "/theme/cultural/02.jpeg"]],
+  Gaming: [["/theme/gaming/01.jpg", "/theme/gaming/01.jpeg"], ["/theme/gaming/02.jpg", "/theme/gaming/02.jpeg"]],
+  Business: [["/theme/business/01.jpg", "/theme/business/01.jpeg"], ["/theme/business/02.jpg", "/theme/business/02.jpeg"]],
+  Hackathon: [["/theme/hackathon/01.jpg", "/theme/hackathon/01.jpeg"], ["/theme/hackathon/02.jpg", "/theme/hackathon/02.jpeg"]],
+  Workshop: [["/theme/workshop/01.jpg", "/theme/workshop/01.jpeg"], ["/theme/workshop/02.jpg", "/theme/workshop/02.jpeg"]],
+  "AI & Machine Learning": [["/theme/ai-machine-learning/01.jpg", "/theme/ai-machine-learning/01.jpeg"], ["/theme/ai-machine-learning/02.jpg", "/theme/ai-machine-learning/02.jpeg"]],
+  Cybersecurity: [["/theme/cybersecurity/01.jpg", "/theme/cybersecurity/01.jpeg"], ["/theme/cybersecurity/02.jpg", "/theme/cybersecurity/02.jpeg"]],
+  Robotics: [["/theme/robotics/01.jpg", "/theme/robotics/01.jpeg"], ["/theme/robotics/02.jpg", "/theme/robotics/02.jpeg"]],
+  "Startup & Innovation": [["/theme/startup-innovation/01.jpg", "/theme/startup-innovation/01.jpeg"], ["/theme/startup-innovation/02.jpg", "/theme/startup-innovation/02.jpeg"]],
 };
 
 const randomThemeBackground = (theme: string) => {
-  const candidates = themeBackgrounds[theme] || [];
-  if (!candidates.length) {
+  const variants = themeBackgrounds[theme] || [];
+  if (!variants.length) {
     return null;
   }
-  const randomIndex = Math.floor(Math.random() * candidates.length);
-  return candidates[randomIndex];
+  const randomIndex = Math.floor(Math.random() * variants.length);
+  return variants[randomIndex];
 };
 
 const fileToDataUrl = (file: File) =>
@@ -271,7 +271,7 @@ const FlyerGenerator = () => {
     backgroundSource,
     overlayOpacity = 0.18,
   }: {
-    backgroundSource?: string | null;
+    backgroundSource?: string | string[] | null;
     overlayOpacity?: number;
   }) => {
     const width = 1024;
@@ -293,12 +293,16 @@ const FlyerGenerator = () => {
     let hasImageBackground = false;
 
     if (backgroundSource) {
-      try {
-        const background = await loadImage(backgroundSource);
-        context.drawImage(background, 0, 0, width, height);
-        hasImageBackground = true;
-      } catch {
-        hasImageBackground = false;
+      const sources = Array.isArray(backgroundSource) ? backgroundSource : [backgroundSource];
+      for (const source of sources) {
+        try {
+          const background = await loadImage(source);
+          context.drawImage(background, 0, 0, width, height);
+          hasImageBackground = true;
+          break;
+        } catch {
+          hasImageBackground = false;
+        }
       }
     }
 
@@ -430,17 +434,9 @@ const FlyerGenerator = () => {
     try {
       const selectedThemeBackground = randomThemeBackground(formData.theme);
       const backgroundSource = formData.customBackgroundDataUrl || selectedThemeBackground;
-      const hasImageBackground = await composeFlyer({ backgroundSource, overlayOpacity: 0.18 });
-
-      if (formData.customBackgroundDataUrl) {
-        setSelectedBackgroundLabel("Using uploaded custom background");
-      } else if (selectedThemeBackground) {
-        setSelectedBackgroundLabel(`Using theme background: ${selectedThemeBackground}`);
-      } else {
-        setSelectedBackgroundLabel("No image found for theme; using fallback gradient");
-      }
-
-      setStatus(hasImageBackground ? "Poster generated with predefined theme background." : "Theme image not found yet. Add images under public/theme folders to enable themed backgrounds.");
+      await composeFlyer({ backgroundSource, overlayOpacity: 0.18 });
+      setSelectedBackgroundLabel("");
+      setStatus("");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Failed to generate flyer.");
     } finally {
@@ -554,7 +550,6 @@ const FlyerGenerator = () => {
           </div>
 
           {status ? <p className="font-mono text-xs text-muted-foreground">{status}</p> : null}
-          {selectedBackgroundLabel ? <p className="font-mono text-[11px] text-muted-foreground">{selectedBackgroundLabel}</p> : null}
         </motion.div>
 
         <motion.div initial={{ x: 25, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
