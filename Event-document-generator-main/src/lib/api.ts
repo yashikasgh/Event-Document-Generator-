@@ -149,8 +149,25 @@ export const api = {
     return response.json() as Promise<{
       students: Array<{ id: string; name: string; roll: string; year?: string; branch?: string; division?: string; selected?: boolean }>;
       metadata: { sourceFile: string; rowsParsed: number; years: string[]; branches: string[]; divisions: string[] };
+      roster: {
+        id: string;
+        fileName: string;
+        uploadedAt: string;
+        students: Array<{ id: string; name: string; roll: string; year?: string; branch?: string; division?: string; selected?: boolean }>;
+        metadata: { sourceFile: string; rowsParsed: number; years: string[]; branches: string[]; divisions: string[] };
+      };
     }>;
   },
+  getAttendanceRosters: () =>
+    requestJson<{
+      rosters: Array<{
+        id: string;
+        fileName: string;
+        uploadedAt: string;
+        students: Array<{ id: string; name: string; roll: string; year?: string; branch?: string; division?: string; selected?: boolean }>;
+        metadata: { sourceFile: string; rowsParsed: number; years: string[]; branches: string[]; divisions: string[] };
+      }>;
+    }>("/attendance/rosters"),
   exportAttendance: (body: unknown) => requestJson<{ fileName: string; pdfBase64: string }>("/attendance/export", { method: "POST", body }),
 };
 

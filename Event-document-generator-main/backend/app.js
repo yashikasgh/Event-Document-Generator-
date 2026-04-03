@@ -7,6 +7,7 @@ import { generateBudgetEstimationDocument, generateBudgetReportDocument, generat
 import { readBudgetStore, writeBudgetStore } from "./services/budgetStore.js";
 import { analyzeBudget, analyzeBudgetFolder, buildTimeline, compilePostEventSummary, estimateBudgetFromHistory, parseBudgetCsv } from "./services/planning.js";
 import { parseAttendanceFile, buildAttendancePdf } from "./services/attendance.js";
+import { readAttendanceStore, saveAttendanceRoster } from "./services/attendanceStore.js";
 import { generateFlyerConcept } from "./services/flyers.js";
 
 const app = express();
@@ -107,7 +108,28 @@ app.post("/api/attendance/parse", upload.single("file"), async (req, res, next) 
       return res.status(400).json({ message: "A CSV or Excel file is required." });
     }
 
-    res.json(parseAttendanceFile(req.file.buffer, req.file.originalname));
+    const parsed = parseAttendanceFile(req.file.buffer, req.file.originalname);
+    const roster = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      fileName: req.file.originalname,
+      uploadedAt: new Date().toISOString(),
+      students: parsed.students,
+      metadata: parsed.metadata,
+    };
+
+    await saveAttendanceRoster(roster);
+    res.json({
+      ...parsed,
+      roster,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/attendance/rosters", async (_req, res, next) => {
+  try {
+    res.json(await readAttendanceStore());
   } catch (error) {
     next(error);
   }

@@ -1,4 +1,4 @@
-import { ChangeEvent, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Download, LoaderCircle, Upload } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -15,7 +15,23 @@ interface Student {
   selected?: boolean;
 }
 
+interface RosterRecord {
+  id: string;
+  fileName: string;
+  uploadedAt: string;
+  students: Student[];
+  metadata: {
+    sourceFile: string;
+    rowsParsed: number;
+    years: string[];
+    branches: string[];
+    divisions: string[];
+  };
+}
+
 const AttendancePage = () => {
+  const [rosters, setRosters] = useState<RosterRecord[]>([]);
+  const [selectedRosterId, setSelectedRosterId] = useState("");
   const [students, setStudents] = useState<Student[]>([]);
   const [eventTitle, setEventTitle] = useState("");
   const [clubName, setClubName] = useState("");
@@ -27,6 +43,29 @@ const AttendancePage = () => {
   const [status, setStatus] = useState("");
   const [isParsing, setIsParsing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+
+  useEffect(() => {
+    const hydrate = async () => {
+      try {
+        const response = await api.getAttendanceRosters();
+        const rosterList = response.rosters || [];
+        setRosters(rosterList);
+        if (rosterList[0]) {
+          setSelectedRosterId(rosterList[0].id);
+          setStudents(rosterList[0].students.map((student) => ({ ...student, selected: student.selected ?? true })));
+        }
+      } catch {
+        // Keep empty state if backend store is unavailable.
+      }
+    };
+
+    hydrate();
+  }, []);
+
+  const selectedRoster = useMemo(
+    () => rosters.find((roster) => roster.id === selectedRosterId) || null,
+    [rosters, selectedRosterId]
+  );
 
   const filteredStudents = useMemo(
     () =>
@@ -51,6 +90,11 @@ const AttendancePage = () => {
     try {
       const response = await api.parseAttendance(file);
       setStudents(response.students.map((student) => ({ ...student, selected: true })));
+      setRosters((previous) => [response.roster, ...previous.filter((entry) => entry.id !== response.roster.id)]);
+      setSelectedRosterId(response.roster.id);
+      if (!year && response.metadata.years[0]) setYear(response.metadata.years[0]);
+      if (!branch && response.metadata.branches[0]) setBranch(response.metadata.branches[0]);
+      if (!division && response.metadata.divisions[0]) setDivision(response.metadata.divisions[0]);
       setStatus(`Parsed ${response.metadata.rowsParsed} students from ${response.metadata.sourceFile}.`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Failed to parse file.");
@@ -82,6 +126,9 @@ const AttendancePage = () => {
         collegeAddress,
         clubName,
         eventTitle,
+        instituteName: "Mahatma Education Society's",
+        departmentName: branch ? `Department of ${branch}` : "Department",
+        academicYear: "2025-26",
         year,
         branch,
         division,
@@ -97,6 +144,9 @@ const AttendancePage = () => {
   };
 
   const selectedCount = filteredStudents.filter((student) => student.selected).length;
+  const filterYears = selectedRoster?.metadata.years || [];
+  const filterBranches = selectedRoster?.metadata.branches || [];
+  const filterDivisions = selectedRoster?.metadata.divisions || [];
 
   return (
     <div className="min-h-screen p-6 md:p-10">
@@ -123,6 +173,29 @@ const AttendancePage = () => {
               <input type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={handleUpload} />
             </label>
             <p className="mt-4 text-sm text-muted-foreground">Upload a class list with columns like name, roll number, year, branch, or division. The backend will normalize it into a selectable roster.</p>
+            {rosters.length > 0 ? (
+              <div className="mt-4">
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider">Saved Rosters</label>
+                <select
+                  className="brutal-input"
+                  value={selectedRosterId}
+                  onChange={(event) => {
+                    const rosterId = event.target.value;
+                    setSelectedRosterId(rosterId);
+                    const roster = rosters.find((entry) => entry.id === rosterId);
+                    if (roster) {
+                      setStudents(roster.students.map((student) => ({ ...student, selected: student.selected ?? true })));
+                    }
+                  }}
+                >
+                  {rosters.map((roster) => (
+                    <option key={roster.id} value={roster.id}>
+                      {roster.fileName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -131,15 +204,39 @@ const AttendancePage = () => {
               ["collegeAddress", collegeAddress, setCollegeAddress, "College Address"],
               ["clubName", clubName, setClubName, "Club Name"],
               ["eventTitle", eventTitle, setEventTitle, "Event Title"],
-              ["year", year, setYear, "Year filter"],
-              ["branch", branch, setBranch, "Branch filter"],
-              ["division", division, setDivision, "Division filter"],
             ].map(([key, value, setter, label]) => (
               <div key={key}>
                 <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider">{label}</label>
                 <input className="brutal-input" value={value as string} onChange={(event) => (setter as (value: string) => void)(event.target.value)} />
               </div>
             ))}
+            <div>
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider">Year filter</label>
+              <select className="brutal-input" value={year} onChange={(event) => setYear(event.target.value)}>
+                <option value="">All years</option>
+                {filterYears.map((entry) => (
+                  <option key={entry}>{entry}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider">Branch filter</label>
+              <select className="brutal-input" value={branch} onChange={(event) => setBranch(event.target.value)}>
+                <option value="">All branches</option>
+                {filterBranches.map((entry) => (
+                  <option key={entry}>{entry}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider">Division filter</label>
+              <select className="brutal-input" value={division} onChange={(event) => setDivision(event.target.value)}>
+                <option value="">All divisions</option>
+                {filterDivisions.map((entry) => (
+                  <option key={entry}>{entry}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="flex gap-3">
@@ -173,7 +270,15 @@ const AttendancePage = () => {
               <div className="space-y-2 pt-3">
                 {filteredStudents.map((student) => (
                   <button key={student.id} onClick={() => toggleStudent(student.id)} className="grid w-full grid-cols-[52px_1fr_120px_70px] gap-3 rounded-none border-2 border-foreground/15 bg-muted/10 p-3 text-left">
-                    <span className="font-bold">{student.selected ? "Yes" : "No"}</span>
+                    <span className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={!!student.selected}
+                        onChange={() => toggleStudent(student.id)}
+                        onClick={(event) => event.stopPropagation()}
+                        className="h-4 w-4 accent-black"
+                      />
+                    </span>
                     <span className="font-medium">{student.name}</span>
                     <span className="font-mono text-xs">{student.roll}</span>
                     <span className="font-mono text-[10px] text-muted-foreground">{[student.year, student.branch, student.division].filter(Boolean).join(" / ") || "-"}</span>
