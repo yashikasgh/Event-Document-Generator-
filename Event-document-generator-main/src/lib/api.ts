@@ -1,4 +1,7 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+const configuredBase = import.meta.env.VITE_API_BASE_URL;
+const API_BASES = configuredBase
+  ? [configuredBase]
+  : ["/api", "http://localhost:8787/api"];
 
 type JsonOptions = {
   method?: string;
@@ -6,11 +9,26 @@ type JsonOptions = {
   headers?: Record<string, string>;
 };
 
+async function fetchWithFallback(path: string, init: RequestInit): Promise<Response> {
+  let lastError: Error | null = null;
+
+  for (const base of API_BASES) {
+    try {
+      const response = await fetch(`${base}${path}`, init);
+      return response;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error("Request failed");
+    }
+  }
+
+  throw lastError ?? new Error("Backend not reachable. Start the API server and try again.");
+}
+
 async function requestJson<T>(path: string, options: JsonOptions = {}): Promise<T> {
   let response: Response;
 
   try {
-    response = await fetch(`${API_BASE}${path}`, {
+    response = await fetchWithFallback(path, {
       method: options.method || "GET",
       headers: {
         "Content-Type": "application/json",
@@ -52,7 +70,7 @@ export const api = {
     let response: Response;
 
     try {
-      response = await fetch(`${API_BASE}/attendance/parse`, {
+      response = await fetchWithFallback("/attendance/parse", {
         method: "POST",
         body: formData,
       });
