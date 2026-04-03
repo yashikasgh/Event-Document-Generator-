@@ -1,0 +1,1962 @@
+{
+  "rosters": [
+    {
+      "id": "1775230369229-zyu5hf",
+      "fileName": "TY COMP CORE Subjects ML - CN Batchwise List.xlsx",
+      "uploadedAt": "2026-04-03T15:32:49.229Z",
+      "students": [
+        {
+          "id": "1",
+          "name": "TY COMP SEM V EXAMINATIONS Nov 2025",
+          "roll": "ROLL-1",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "2",
+          "name": "ML and CN Core Subjects Batch Wise Student List for Viva /Practical Exam Nov 2025",
+          "roll": "ROLL-2",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "3",
+          "name": "Sr.No",
+          "roll": "Admission No",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "4",
+          "name": "1",
+          "roll": "2023PE0089",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "5",
+          "name": "2",
+          "roll": "2023PE0131",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "6",
+          "name": "3",
+          "roll": "2023PE0070",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "7",
+          "name": "4",
+          "roll": "2023PE0204",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "8",
+          "name": "5",
+          "roll": "2023PE0076",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "9",
+          "name": "6",
+          "roll": "2024PE0461",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "10",
+          "name": "7",
+          "roll": "2023PE0440",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "11",
+          "name": "8",
+          "roll": "2023PE0145",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "12",
+          "name": "9",
+          "roll": "2023PE0263",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "13",
+          "name": "10",
+          "roll": "2023PE0787",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "14",
+          "name": "11",
+          "roll": "2023PE0333",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "15",
+          "name": "12",
+          "roll": "2023PE0773",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "16",
+          "name": "13",
+          "roll": "2023PE0388",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "17",
+          "name": "14",
+          "roll": "2023PE0332",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "18",
+          "name": "15",
+          "roll": "2024PE0490",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "19",
+          "name": "16",
+          "roll": "2023PE0617",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "20",
+          "name": "17",
+          "roll": "2023PE0212",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "21",
+          "name": "18",
+          "roll": "2023PE0118",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "22",
+          "name": "19",
+          "roll": "2023PE0094",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "23",
+          "name": "20",
+          "roll": "2023PE0211",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "24",
+          "name": "21",
+          "roll": "2023PE0293",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "25",
+          "name": "22",
+          "roll": "2023PE0209",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "26",
+          "name": "23",
+          "roll": "2023PE0195",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "27",
+          "name": "24",
+          "roll": "2023PE0045",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "28",
+          "name": "25",
+          "roll": "2023PE0642",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "29",
+          "name": "26",
+          "roll": "2023PE0381",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "30",
+          "name": "27",
+          "roll": "2023PE0483",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "31",
+          "name": "28",
+          "roll": "2023PE0167",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "32",
+          "name": "29",
+          "roll": "2023PE0093",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "33",
+          "name": "30",
+          "roll": "2023PE0100",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "34",
+          "name": "31",
+          "roll": "2023PE0312",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "35",
+          "name": "32",
+          "roll": "2023PE0091",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "36",
+          "name": "33",
+          "roll": "2023PE0193",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "37",
+          "name": "34",
+          "roll": "2023PE0110",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "38",
+          "name": "35",
+          "roll": "2023PE0127",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "39",
+          "name": "36",
+          "roll": "2023PE0001",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "40",
+          "name": "37",
+          "roll": "2023PE0124",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "41",
+          "name": "38",
+          "roll": "2023PE0297",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "42",
+          "name": "39",
+          "roll": "2023PE0049",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "43",
+          "name": "40",
+          "roll": "2023PE0137",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "44",
+          "name": "41",
+          "roll": "2023PE0316",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "45",
+          "name": "42",
+          "roll": "2023PE0285",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "46",
+          "name": "43",
+          "roll": "2023PE0282",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "47",
+          "name": "44",
+          "roll": "2023PE0303",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "48",
+          "name": "45",
+          "roll": "2023PE0218",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "49",
+          "name": "46",
+          "roll": "2024PE0726",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "50",
+          "name": "47",
+          "roll": "2023PE0019",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "51",
+          "name": "48",
+          "roll": "2023PE0650",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "52",
+          "name": "49",
+          "roll": "2023PE0161",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "53",
+          "name": "50",
+          "roll": "2023PE0043",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "54",
+          "name": "51",
+          "roll": "2023PE0385",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "55",
+          "name": "52",
+          "roll": "2023PE0353",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "56",
+          "name": "53",
+          "roll": "2023PE0766",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "57",
+          "name": "54",
+          "roll": "2023PE0272",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "58",
+          "name": "55",
+          "roll": "2023PE0636",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "59",
+          "name": "56",
+          "roll": "2022PE0546",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "60",
+          "name": "57",
+          "roll": "2024PE0466",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "61",
+          "name": "58",
+          "roll": "2023PE0465",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "62",
+          "name": "59",
+          "roll": "2023PE0154",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "63",
+          "name": "60",
+          "roll": "2023PE0361",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "64",
+          "name": "61",
+          "roll": "2023PE0302",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "65",
+          "name": "62",
+          "roll": "2024PE0278",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "66",
+          "name": "63",
+          "roll": "2023PE0054",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "67",
+          "name": "64",
+          "roll": "2023PE0499",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "68",
+          "name": "65",
+          "roll": "2023PE0129",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "69",
+          "name": "66",
+          "roll": "2023PE0648",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "70",
+          "name": "67",
+          "roll": "2023PE0168",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "71",
+          "name": "68",
+          "roll": "2021PE0194",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "72",
+          "name": "69",
+          "roll": "2023PE0292",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "73",
+          "name": "70",
+          "roll": "2023PE0147",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "74",
+          "name": "71",
+          "roll": "2023PE0008",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "75",
+          "name": "72",
+          "roll": "2023PE0004",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "76",
+          "name": "73",
+          "roll": "2023PE0208",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "77",
+          "name": "74",
+          "roll": "2023PE0372",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "78",
+          "name": "75",
+          "roll": "2023PE0441",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "79",
+          "name": "76",
+          "roll": "2023PE0151",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "80",
+          "name": "77",
+          "roll": "2023PE0200",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "81",
+          "name": "78",
+          "roll": "2023PE0532",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "82",
+          "name": "79",
+          "roll": "2023PE0595",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "83",
+          "name": "80",
+          "roll": "2023PE0146",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "84",
+          "name": "81",
+          "roll": "2023PE0215",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "85",
+          "name": "82",
+          "roll": "2024PE0482",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "86",
+          "name": "83",
+          "roll": "2023PE0216",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "87",
+          "name": "84",
+          "roll": "2023PE0503",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "88",
+          "name": "85",
+          "roll": "2023PE0654",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "89",
+          "name": "86",
+          "roll": "2023PE0134",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "90",
+          "name": "87",
+          "roll": "2023PE0714",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "91",
+          "name": "88",
+          "roll": "2024PE0507",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "92",
+          "name": "89",
+          "roll": "2024PE0289",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "93",
+          "name": "90",
+          "roll": "2023PE0035",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "94",
+          "name": "91",
+          "roll": "2023PE0446",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "95",
+          "name": "92",
+          "roll": "2023PE0082",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "96",
+          "name": "93",
+          "roll": "2023PE0148",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "97",
+          "name": "94",
+          "roll": "2023PE0220",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "98",
+          "name": "95",
+          "roll": "2022PE0161",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "99",
+          "name": "96",
+          "roll": "2023PE0221",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "100",
+          "name": "97",
+          "roll": "2023PE0379",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "101",
+          "name": "98",
+          "roll": "2023PE0461",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "102",
+          "name": "99",
+          "roll": "2022PE0045",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "103",
+          "name": "100",
+          "roll": "2024PE0263",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "104",
+          "name": "101",
+          "roll": "2023PE0495",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "105",
+          "name": "102",
+          "roll": "2023PE0065",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "106",
+          "name": "103",
+          "roll": "2023PE0123",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "107",
+          "name": "104",
+          "roll": "2023PE0037",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "108",
+          "name": "105",
+          "roll": "2023PE0117",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "109",
+          "name": "106",
+          "roll": "2023PE0087",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "110",
+          "name": "107",
+          "roll": "2023PE0052",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "111",
+          "name": "108",
+          "roll": "2023PE0488",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "112",
+          "name": "109",
+          "roll": "2023PE0022",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "113",
+          "name": "110",
+          "roll": "2023PE0172",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "114",
+          "name": "111",
+          "roll": "2024PE0505",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "115",
+          "name": "112",
+          "roll": "2023PE0266",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "116",
+          "name": "113",
+          "roll": "2023PE0260",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "117",
+          "name": "114",
+          "roll": "2023PE0206",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "118",
+          "name": "115",
+          "roll": "2023PE0222",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "119",
+          "name": "116",
+          "roll": "2024PE0707",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "120",
+          "name": "117",
+          "roll": "2023PE0096",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "121",
+          "name": "118",
+          "roll": "2023PE0394",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "122",
+          "name": "119",
+          "roll": "2023PE0653",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "123",
+          "name": "120",
+          "roll": "2023PE0025",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "124",
+          "name": "121",
+          "roll": "2023PE0354",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "125",
+          "name": "122",
+          "roll": "2023PE0644",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "126",
+          "name": "123",
+          "roll": "2023PE0485",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "127",
+          "name": "124",
+          "roll": "2023PE0526",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "128",
+          "name": "125",
+          "roll": "2023PE0191",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "129",
+          "name": "126",
+          "roll": "2023PE0016",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "130",
+          "name": "127",
+          "roll": "2024PE0464",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "131",
+          "name": "128",
+          "roll": "2023PE0057",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "132",
+          "name": "129",
+          "roll": "2023PE0401",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "133",
+          "name": "130",
+          "roll": "2023PE0504",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "134",
+          "name": "131",
+          "roll": "2023PE0612",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "135",
+          "name": "132",
+          "roll": "2023PE0156",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "136",
+          "name": "133",
+          "roll": "2022PE0002",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "137",
+          "name": "134",
+          "roll": "2023PE0073",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "138",
+          "name": "135",
+          "roll": "2023PE0560",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "139",
+          "name": "136",
+          "roll": "2023PE0484",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "140",
+          "name": "137",
+          "roll": "2023PE0046",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "141",
+          "name": "138",
+          "roll": "2023PE0290",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "142",
+          "name": "139",
+          "roll": "2023PE0079",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "143",
+          "name": "140",
+          "roll": "2023PE0529",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "144",
+          "name": "141",
+          "roll": "2023PE0166",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "145",
+          "name": "142",
+          "roll": "2023PE0097",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "146",
+          "name": "143",
+          "roll": "2024PE0767",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "147",
+          "name": "144",
+          "roll": "2024PE0262",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "148",
+          "name": "145",
+          "roll": "2024PE0455",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "149",
+          "name": "146",
+          "roll": "2023PE0205",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "150",
+          "name": "147",
+          "roll": "2023PE0083",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "151",
+          "name": "148",
+          "roll": "2023PE0188",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "152",
+          "name": "149",
+          "roll": "2023PE0058",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "153",
+          "name": "150",
+          "roll": "2023PE0067",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "154",
+          "name": "151",
+          "roll": "2023PE0197",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "155",
+          "name": "152",
+          "roll": "2023PE0607",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "156",
+          "name": "153",
+          "roll": "2023PE0192",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "157",
+          "name": "154",
+          "roll": "2023PE0011",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "158",
+          "name": "155",
+          "roll": "2023PE0080",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "159",
+          "name": "156",
+          "roll": "2023PE0062",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "160",
+          "name": "157",
+          "roll": "2024PE0471",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "161",
+          "name": "158",
+          "roll": "2023PE0111",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "162",
+          "name": "159",
+          "roll": "2023PE0582",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "163",
+          "name": "160",
+          "roll": "2023PE0294",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "164",
+          "name": "161",
+          "roll": "2024PE0499",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "165",
+          "name": "162",
+          "roll": "2023PE0162",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "166",
+          "name": "163",
+          "roll": "2024PE0682",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "167",
+          "name": "164",
+          "roll": "2023PE0182",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "168",
+          "name": "165",
+          "roll": "2022PE0766",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "169",
+          "name": "166",
+          "roll": "2023PE0144",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "170",
+          "name": "167",
+          "roll": "2023PE0072",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "171",
+          "name": "168",
+          "roll": "2023PE0053",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "172",
+          "name": "169",
+          "roll": "2023PE0031",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "173",
+          "name": "170",
+          "roll": "2023PE0328",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "174",
+          "name": "171",
+          "roll": "2023PE0078",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "175",
+          "name": "172",
+          "roll": "2023PE0068",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "176",
+          "name": "173",
+          "roll": "2023PE0611",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "177",
+          "name": "174",
+          "roll": "2023PE0047",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "178",
+          "name": "175",
+          "roll": "2023PE0006",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "179",
+          "name": "176",
+          "roll": "2023PE0104",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "180",
+          "name": "177",
+          "roll": "2023PE0350",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "181",
+          "name": "178",
+          "roll": "2023PE0044",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "182",
+          "name": "179",
+          "roll": "2023PE0107",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "183",
+          "name": "180",
+          "roll": "2023PE0042",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "184",
+          "name": "181",
+          "roll": "2023PE0139",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "185",
+          "name": "182",
+          "roll": "2023PE0018",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "186",
+          "name": "183",
+          "roll": "2023PE0142",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "187",
+          "name": "184",
+          "roll": "2023PE0150",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "188",
+          "name": "185",
+          "roll": "2023PE0217",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "189",
+          "name": "186",
+          "roll": "2023PE0615",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "190",
+          "name": "187",
+          "roll": "2023PE0017",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "191",
+          "name": "188",
+          "roll": "2023PE0202",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "192",
+          "name": "189",
+          "roll": "2023PE0528",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "193",
+          "name": "190",
+          "roll": "2023PE0114",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "194",
+          "name": "191",
+          "roll": "2023PE0270",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "195",
+          "name": "192",
+          "roll": "2023PE0136",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "196",
+          "name": "193",
+          "roll": "2023PE0314",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "197",
+          "name": "194",
+          "roll": "2023PE0077",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "198",
+          "name": "195",
+          "roll": "2023PE0026",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "199",
+          "name": "196",
+          "roll": "2023PE0024",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "200",
+          "name": "197",
+          "roll": "2023PE0066",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "201",
+          "name": "198",
+          "roll": "2023PE0157",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "202",
+          "name": "199",
+          "roll": "2023PE0165",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "203",
+          "name": "200",
+          "roll": "2023PE0106",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "204",
+          "name": "201",
+          "roll": "2023PE0344",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "205",
+          "name": "202",
+          "roll": "2023PE0160",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "206",
+          "name": "203",
+          "roll": "2023PE0059",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "207",
+          "name": "204",
+          "roll": "2024PE0267",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "208",
+          "name": "205",
+          "roll": "2023PE0116",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "209",
+          "name": "206",
+          "roll": "2023PE0002",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "210",
+          "name": "207",
+          "roll": "2023PE0383",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "211",
+          "name": "208",
+          "roll": "2023PE0589",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "212",
+          "name": "209",
+          "roll": "2023PE0143",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "213",
+          "name": "210",
+          "roll": "2023PE0496",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "214",
+          "name": "211",
+          "roll": "2022PE0053",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "215",
+          "name": "212",
+          "roll": "2023PE0108",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        },
+        {
+          "id": "216",
+          "name": "213",
+          "roll": "2023PE0674",
+          "year": "",
+          "branch": "",
+          "division": "",
+          "selected": true
+        }
+      ],
+      "metadata": {
+        "sourceFile": "TY COMP CORE Subjects ML - CN Batchwise List.xlsx",
+        "rowsParsed": 216,
+        "years": [],
+        "branches": [],
+        "divisions": []
+      }
+    }
+  ]
+}

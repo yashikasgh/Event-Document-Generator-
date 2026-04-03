@@ -11,8 +11,36 @@ const defaultStore = {
   rosters: [],
 };
 
+const normalizeStudent = (student = {}, index = 0) => ({
+  id: String(student.id || index + 1),
+  srNo: student.srNo ? String(student.srNo) : "",
+  admissionNo: student.admissionNo ? String(student.admissionNo) : student.roll ? String(student.roll) : "",
+  seatNo: student.seatNo ? String(student.seatNo) : "",
+  name: student.name ? String(student.name) : "",
+  roll: student.roll ? String(student.roll) : student.admissionNo ? String(student.admissionNo) : "",
+  year: student.year ? String(student.year) : "",
+  branch: student.branch ? String(student.branch) : "",
+  division: student.division ? String(student.division) : "",
+  selected: student.selected ?? true,
+});
+
+const normalizeRoster = (roster = {}) => ({
+  id: String(roster.id || `${Date.now()}`),
+  fileName: String(roster.fileName || "Uploaded roster"),
+  uploadedAt: String(roster.uploadedAt || new Date().toISOString()),
+  students: Array.isArray(roster.students) ? roster.students.map(normalizeStudent) : [],
+  metadata: {
+    sourceFile: String(roster.metadata?.sourceFile || roster.fileName || "Uploaded roster"),
+    rowsParsed: Number(roster.metadata?.rowsParsed || (Array.isArray(roster.students) ? roster.students.length : 0)),
+    extractedColumns: Array.isArray(roster.metadata?.extractedColumns) ? roster.metadata.extractedColumns : [],
+    years: Array.isArray(roster.metadata?.years) ? roster.metadata.years.map(String) : [],
+    branches: Array.isArray(roster.metadata?.branches) ? roster.metadata.branches.map(String) : [],
+    divisions: Array.isArray(roster.metadata?.divisions) ? roster.metadata.divisions.map(String) : [],
+  },
+});
+
 const normalizeStore = (store = {}) => ({
-  rosters: Array.isArray(store.rosters) ? store.rosters : [],
+  rosters: Array.isArray(store.rosters) ? store.rosters.map(normalizeRoster) : [],
 });
 
 const ensureStoreFile = async () => {

@@ -7,6 +7,9 @@ import { COLLEGE_BRAND } from "@/lib/clubs";
 
 interface Student {
   id: string;
+  srNo?: string;
+  admissionNo?: string;
+  seatNo?: string;
   name: string;
   roll: string;
   year?: string;
@@ -23,11 +26,40 @@ interface RosterRecord {
   metadata: {
     sourceFile: string;
     rowsParsed: number;
+    extractedColumns?: string[];
     years: string[];
     branches: string[];
     divisions: string[];
   };
 }
+
+const normalizeStudent = (student: Partial<Student>, index: number): Student => ({
+  id: String(student.id || index + 1),
+  srNo: student.srNo ? String(student.srNo) : "",
+  admissionNo: student.admissionNo ? String(student.admissionNo) : student.roll ? String(student.roll) : "",
+  seatNo: student.seatNo ? String(student.seatNo) : "",
+  name: student.name ? String(student.name) : "",
+  roll: student.roll ? String(student.roll) : student.admissionNo ? String(student.admissionNo) : "",
+  year: student.year ? String(student.year) : "",
+  branch: student.branch ? String(student.branch) : "",
+  division: student.division ? String(student.division) : "",
+  selected: student.selected ?? true,
+});
+
+const normalizeRoster = (roster: Partial<RosterRecord>): RosterRecord => ({
+  id: String(roster.id || `${Date.now()}`),
+  fileName: String(roster.fileName || "Uploaded roster"),
+  uploadedAt: String(roster.uploadedAt || new Date().toISOString()),
+  students: Array.isArray(roster.students) ? roster.students.map((student, index) => normalizeStudent(student, index)) : [],
+  metadata: {
+    sourceFile: String(roster.metadata?.sourceFile || roster.fileName || "Uploaded roster"),
+    rowsParsed: Number(roster.metadata?.rowsParsed || (Array.isArray(roster.students) ? roster.students.length : 0)),
+    extractedColumns: Array.isArray(roster.metadata?.extractedColumns) ? roster.metadata.extractedColumns : [],
+    years: Array.isArray(roster.metadata?.years) ? roster.metadata.years.map(String) : [],
+    branches: Array.isArray(roster.metadata?.branches) ? roster.metadata.branches.map(String) : [],
+    divisions: Array.isArray(roster.metadata?.divisions) ? roster.metadata.divisions.map(String) : [],
+  },
+});
 
 const AttendancePage = () => {
   const [rosters, setRosters] = useState<RosterRecord[]>([]);
@@ -48,11 +80,11 @@ const AttendancePage = () => {
     const hydrate = async () => {
       try {
         const response = await api.getAttendanceRosters();
-        const rosterList = response.rosters || [];
+        const rosterList = Array.isArray(response.rosters) ? response.rosters.map(normalizeRoster) : [];
         setRosters(rosterList);
         if (rosterList[0]) {
           setSelectedRosterId(rosterList[0].id);
-          setStudents(rosterList[0].students.map((student) => ({ ...student, selected: student.selected ?? true })));
+          setStudents(rosterList[0].students);
         }
       } catch {
         // Keep empty state if backend store is unavailable.
@@ -89,13 +121,14 @@ const AttendancePage = () => {
 
     try {
       const response = await api.parseAttendance(file);
-      setStudents(response.students.map((student) => ({ ...student, selected: true })));
-      setRosters((previous) => [response.roster, ...previous.filter((entry) => entry.id !== response.roster.id)]);
-      setSelectedRosterId(response.roster.id);
-      if (!year && response.metadata.years[0]) setYear(response.metadata.years[0]);
-      if (!branch && response.metadata.branches[0]) setBranch(response.metadata.branches[0]);
-      if (!division && response.metadata.divisions[0]) setDivision(response.metadata.divisions[0]);
-      setStatus(`Parsed ${response.metadata.rowsParsed} students from ${response.metadata.sourceFile}.`);
+      const normalizedRoster = normalizeRoster(response.roster);
+      setStudents(normalizedRoster.students);
+      setRosters((previous) => [normalizedRoster, ...previous.filter((entry) => entry.id !== normalizedRoster.id)]);
+      setSelectedRosterId(normalizedRoster.id);
+      if (!year && normalizedRoster.metadata.years[0]) setYear(normalizedRoster.metadata.years[0]);
+      if (!branch && normalizedRoster.metadata.branches[0]) setBranch(normalizedRoster.metadata.branches[0]);
+      if (!division && normalizedRoster.metadata.divisions[0]) setDivision(normalizedRoster.metadata.divisions[0]);
+      setStatus(`Parsed ${normalizedRoster.metadata.rowsParsed} students from ${normalizedRoster.metadata.sourceFile}.`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Failed to parse file.");
     } finally {
@@ -173,7 +206,7 @@ const AttendancePage = () => {
               <input type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={handleUpload} />
             </label>
             <p className="mt-4 text-sm text-muted-foreground">Upload a class list with columns like name, roll number, year, branch, or division. The backend will normalize it into a selectable roster.</p>
-            {rosters.length > 0 ? (
+          {rosters.length > 0 ? (
               <div className="mt-4">
                 <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider">Saved Rosters</label>
                 <select
@@ -184,7 +217,7 @@ const AttendancePage = () => {
                     setSelectedRosterId(rosterId);
                     const roster = rosters.find((entry) => entry.id === rosterId);
                     if (roster) {
-                      setStudents(roster.students.map((student) => ({ ...student, selected: student.selected ?? true })));
+                      setStudents(roster.students);
                     }
                   }}
                 >
@@ -194,6 +227,11 @@ const AttendancePage = () => {
                     </option>
                   ))}
                 </select>
+                {selectedRoster?.metadata.extractedColumns?.length ? (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Extracted columns: {selectedRoster.metadata.extractedColumns.join(", ")}
+                  </p>
+                ) : null}
               </div>
             ) : null}
           </div>
@@ -261,15 +299,16 @@ const AttendancePage = () => {
             </div>
 
             <div className="max-h-[640px] overflow-y-auto">
-              <div className="grid grid-cols-[52px_1fr_120px_70px] gap-3 border-b-2 border-foreground pb-3 text-xs font-bold uppercase tracking-wider">
+              <div className="grid grid-cols-[52px_72px_140px_120px_1fr] gap-3 border-b-2 border-foreground pb-3 text-xs font-bold uppercase tracking-wider">
                 <span>Select</span>
+                <span>Sr.No</span>
+                <span>Admission</span>
+                <span>Seat No</span>
                 <span>Name</span>
-                <span>Roll</span>
-                <span>Meta</span>
               </div>
               <div className="space-y-2 pt-3">
                 {filteredStudents.map((student) => (
-                  <button key={student.id} onClick={() => toggleStudent(student.id)} className="grid w-full grid-cols-[52px_1fr_120px_70px] gap-3 rounded-none border-2 border-foreground/15 bg-muted/10 p-3 text-left">
+                  <button key={student.id} onClick={() => toggleStudent(student.id)} className="grid w-full grid-cols-[52px_72px_140px_120px_1fr] gap-3 rounded-none border-2 border-foreground/15 bg-muted/10 p-3 text-left">
                     <span className="flex items-center">
                       <input
                         type="checkbox"
@@ -279,9 +318,10 @@ const AttendancePage = () => {
                         className="h-4 w-4 accent-black"
                       />
                     </span>
+                    <span className="font-mono text-xs">{student.srNo || "-"}</span>
+                    <span className="font-mono text-xs">{student.admissionNo || student.roll || "-"}</span>
+                    <span className="font-mono text-xs">{student.seatNo || "-"}</span>
                     <span className="font-medium">{student.name}</span>
-                    <span className="font-mono text-xs">{student.roll}</span>
-                    <span className="font-mono text-[10px] text-muted-foreground">{[student.year, student.branch, student.division].filter(Boolean).join(" / ") || "-"}</span>
                   </button>
                 ))}
                 {filteredStudents.length === 0 ? <p className="py-10 text-center text-sm text-muted-foreground">Upload a roster to start building the attendance sheet.</p> : null}
