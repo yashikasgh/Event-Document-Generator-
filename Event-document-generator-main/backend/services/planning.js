@@ -171,6 +171,11 @@ export const compilePostEventSummary = (payload) => {
 
 export const analyzeBudgetFolder = async (payload) => {
   const folder = payload.folder || {};
+  const expectedBudget = Number(folder.expectedBudget || 0);
+  const actualSpend = Number(folder.grandTotal || 0);
+  const variance = actualSpend - expectedBudget;
+  const expenseCount = safeArray(folder.items).length;
+  const averageExpense = expenseCount > 0 ? actualSpend / expenseCount : 0;
   const narrative = await generateBudgetAnalysisNarrative({
     ...folder,
     csvSummary: payload.csvSummary || "",
@@ -184,6 +189,22 @@ export const analyzeBudgetFolder = async (payload) => {
     insights: narrative.insights,
     recommendation: narrative.recommendation,
     source: narrative.source,
+    metrics: {
+      expectedBudget,
+      actualSpend,
+      variance,
+      expenseCount,
+      averageExpense,
+      expectedBudgetFormatted: formatCurrency(expectedBudget),
+      actualSpendFormatted: formatCurrency(actualSpend),
+      varianceFormatted: formatCurrency(variance),
+      averageExpenseFormatted: formatCurrency(averageExpense),
+    },
+    chart: [
+      { label: "Expected", amount: expectedBudget, amountFormatted: formatCurrency(expectedBudget) },
+      { label: "Actual", amount: actualSpend, amountFormatted: formatCurrency(actualSpend) },
+      { label: "Variance", amount: Math.abs(variance), amountFormatted: formatCurrency(Math.abs(variance)) },
+    ],
   };
 };
 

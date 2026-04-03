@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { LoaderCircle, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import BudgetWorkspaceShell from "@/components/BudgetWorkspaceShell";
@@ -13,7 +13,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { api } from "@/lib/api";
 import {
   EXPENSE_TYPES,
   PAYMENT_METHODS,
@@ -58,8 +57,6 @@ const BudgetPlannerPage = () => {
   const [description, setDescription] = useState("");
   const [currentDraftId, setCurrentDraftId] = useState("");
   const [expenseForm, setExpenseForm] = useState<ExpenseForm>(emptyExpense());
-  const [analysis, setAnalysis] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [pendingDeleteExpenseId, setPendingDeleteExpenseId] = useState("");
 
   useEffect(() => {
@@ -215,26 +212,6 @@ const BudgetPlannerPage = () => {
     toast.success("Expense added to the selected folder.");
   };
 
-  const analyzeCurrentFolder = async () => {
-    const folder = records.find((record) => record.id === (expenseForm.folderId || currentDraftId));
-    if (!folder) {
-      toast.error("Select a folder to analyze.");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await api.analyzeBudgetFolder({ folder });
-      const insights = Array.isArray(response.insights) ? (response.insights as string[]) : [];
-      setAnalysis([String(response.summary || ""), ...insights, String(response.recommendation || "")].filter(Boolean));
-      toast.success("Folder analysis generated.");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not analyze this folder.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const deleteExpenseFromFolder = () => {
     if (!pendingDeleteExpenseId || !selectedFolder) {
       return;
@@ -263,15 +240,9 @@ const BudgetPlannerPage = () => {
       title="Create Budget"
       subtitle="Add expenses into folders, save folders separately, and track today's spend"
       actions={
-        <>
-          <button onClick={saveFolder} className="brutal-btn-outline py-3">
-            {currentDraftId ? "Update Folder" : "Save Folder"}
-          </button>
-          <button onClick={analyzeCurrentFolder} className="brutal-btn-primary flex items-center gap-2 py-3" disabled={isLoading}>
-            {isLoading ? <LoaderCircle className="h-4 w-4 animate-spin" strokeWidth={2.4} /> : null}
-            Analyze Selected Folder
-          </button>
-        </>
+        <button onClick={saveFolder} className="brutal-btn-outline py-3">
+          {currentDraftId ? "Update Folder" : "Save Folder"}
+        </button>
       }
     >
       <div className="rounded-[24px] border-2 border-foreground bg-card p-5 brutal-shadow-sm">
@@ -428,19 +399,6 @@ const BudgetPlannerPage = () => {
               No expenditure recorded for today yet.
             </div>
           )}
-
-          <div className="mt-5 rounded-[18px] border border-foreground/10 bg-background px-4 py-4">
-            <p className="text-sm text-muted-foreground">Analysis result</p>
-            {analysis.length > 0 ? (
-              <div className="mt-3 space-y-2">
-                {analysis.map((entry) => (
-                  <p key={entry} className="text-sm text-muted-foreground">{entry}</p>
-                ))}
-              </div>
-            ) : (
-              <p className="mt-3 text-sm text-muted-foreground">Analyze a folder to see AI-backed observations here.</p>
-            )}
-          </div>
         </div>
       </div>
 

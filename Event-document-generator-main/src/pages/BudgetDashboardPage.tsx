@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { Activity, CalendarClock, PieChart as PieChartIcon, Wallet, WalletCards } from "lucide-react";
-import { Bar, BarChart, Cell, Pie, PieChart, Tooltip, XAxis, YAxis } from "recharts";
+import { Activity, BarChart3, CalendarClock, Wallet, WalletCards } from "lucide-react";
+import { Bar, BarChart, Cell, Tooltip, XAxis, YAxis } from "recharts";
 import BudgetWorkspaceShell from "@/components/BudgetWorkspaceShell";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StoredBudgetRecord, formatBudgetCurrency, loadBudgetRecords } from "@/lib/budgetStorage";
 import { getBudgetTotals, getCategorySpend, getMonthlyExpenses, getRecentActivity } from "@/lib/budgetMetrics";
 
-const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))", "#111111", "#757575"];
+const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))", "#111111", "#757575", "#e67e22", "#0f766e", "#d97706"];
 
 const BudgetDashboardPage = () => {
   const [records, setRecords] = useState<StoredBudgetRecord[]>([]);
@@ -66,43 +66,6 @@ const BudgetDashboardPage = () => {
         ))}
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
-        <div className="rounded-[24px] border-2 border-foreground bg-card p-5 brutal-shadow-sm">
-          <div className="mb-4 flex items-center gap-2">
-            <PieChartIcon className="h-4 w-4" strokeWidth={2.4} />
-            <h2 className="text-lg font-bold uppercase">Category-wise Spending</h2>
-          </div>
-          <ChartContainer
-            className="h-[300px] w-full"
-            config={Object.fromEntries(categoryData.map((entry, index) => [entry.name, { label: entry.name, color: COLORS[index % COLORS.length] }]))}
-          >
-            <PieChart>
-              <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-              <Pie data={categoryData} dataKey="value" nameKey="name" innerRadius={70} outerRadius={108} paddingAngle={4}>
-                {categoryData.map((entry, index) => (
-                  <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ChartContainer>
-        </div>
-
-        <div className="rounded-[24px] border-2 border-foreground bg-card p-5 brutal-shadow-sm">
-          <div className="mb-4 flex items-center gap-2">
-            <Activity className="h-4 w-4" strokeWidth={2.4} />
-            <h2 className="text-lg font-bold uppercase">Monthly Expenses</h2>
-          </div>
-          <ChartContainer config={{ spent: { label: "Spent", color: "hsl(var(--primary))" } }} className="h-[300px] w-full">
-            <BarChart data={monthlyData}>
-              <XAxis dataKey="month" tickLine={false} axisLine={false} />
-              <YAxis tickLine={false} axisLine={false} />
-              <Tooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="spent" radius={[10, 10, 0, 0]} fill="var(--color-spent)" />
-            </BarChart>
-          </ChartContainer>
-        </div>
-      </div>
-
       <div className="rounded-[24px] border-2 border-foreground bg-card p-5 brutal-shadow-sm">
         <h2 className="text-lg font-bold uppercase">Recent Activity</h2>
         {activity.length === 0 ? (
@@ -110,7 +73,7 @@ const BudgetDashboardPage = () => {
             No expenses yet. Create a budget to start tracking activity.
           </div>
         ) : (
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 grid gap-3 xl:grid-cols-2">
             {activity.map((item) => (
               <div key={item.id} className="flex flex-col gap-2 rounded-[20px] border border-foreground/10 bg-background px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -125,6 +88,49 @@ const BudgetDashboardPage = () => {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[1fr_1fr]">
+        <div className="rounded-[24px] border-2 border-foreground bg-card p-5 brutal-shadow-sm">
+          <div className="mb-4 flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" strokeWidth={2.4} />
+            <h2 className="text-lg font-bold uppercase">Category-wise Spending</h2>
+          </div>
+          <ChartContainer
+            className="h-[300px] w-full"
+            config={Object.fromEntries(categoryData.map((entry, index) => [entry.name, { label: entry.name, color: COLORS[index % COLORS.length] }]))}
+          >
+            <BarChart data={categoryData}>
+              <XAxis dataKey="name" tickLine={false} axisLine={false} />
+              <YAxis tickLine={false} axisLine={false} />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Bar dataKey="value" radius={[10, 10, 0, 0]}>
+                {categoryData.map((entry, index) => (
+                  <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ChartContainer>
+        </div>
+
+        <div className="rounded-[24px] border-2 border-foreground bg-card p-5 brutal-shadow-sm">
+          <div className="mb-4 flex items-center gap-2">
+            <Activity className="h-4 w-4" strokeWidth={2.4} />
+            <h2 className="text-lg font-bold uppercase">Monthly Expenses</h2>
+          </div>
+          <ChartContainer config={{ spent: { label: "Spent", color: "hsl(var(--primary))" } }} className="h-[220px] w-full">
+            <BarChart data={monthlyData}>
+              <XAxis dataKey="month" tickLine={false} axisLine={false} />
+              <YAxis tickLine={false} axisLine={false} />
+              <Tooltip content={<ChartTooltipContent />} />
+              <Bar dataKey="spent" radius={[8, 8, 0, 0]}>
+                {monthlyData.map((entry, index) => (
+                  <Cell key={entry.month} fill={COLORS[(index + 2) % COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ChartContainer>
+        </div>
       </div>
     </BudgetWorkspaceShell>
   );
