@@ -74,3 +74,97 @@ async function requestJson<T>(
 
   return response.json();
 }
+
+export const api = {
+  health: () => requestJson<{ ok: boolean; service: string; date: string }>("/health"),
+  generateProposal: (body: unknown) =>
+    requestJson<{ fileName: string; pdfBase64: string; summary: Record<string, unknown>; narrative: string[] }>("/documents/proposal", {
+      method: "POST",
+      body,
+    }),
+  generateReport: (body: unknown) => requestJson<{ fileName: string; pdfBase64: string; summary: Record<string, unknown> }>("/documents/report", { method: "POST", body }),
+  generateBudgetReport: (body: unknown) =>
+    requestJson<{ fileName: string; pdfBase64: string; summary: Record<string, unknown> }>("/documents/budget-report", {
+      method: "POST",
+      body,
+    }),
+  generateBudgetEstimation: (body: unknown) =>
+    requestJson<{ fileName: string; pdfBase64: string; summary: Record<string, unknown> }>("/documents/budget-estimation", {
+      method: "POST",
+      body,
+    }),
+  generateFlyer: (body: unknown) =>
+    requestJson<{ prompt: string; provider: string; status: string; message?: string; creativeBrief?: string; imageBase64?: string | null }>("/flyers/generate", {
+      method: "POST",
+      body,
+    }),
+  analyzeBudget: (body: unknown) => requestJson<Record<string, unknown>>("/budget/analyze", { method: "POST", body }),
+  analyzeBudgetFolder: (body: unknown) => requestJson<Record<string, unknown>>("/budget/analyze-folder", { method: "POST", body }),
+  estimateBudget: (body: unknown) => requestJson<Record<string, unknown>>("/budget/estimate", { method: "POST", body }),
+  generateTimeline: (body: unknown) => requestJson<{ timeline: Array<Record<string, unknown>> }>("/timelines/generate", { method: "POST", body }),
+  compileSummary: (body: unknown) => requestJson<Record<string, unknown>>("/post-event/summary", { method: "POST", body }),
+  analyzeBudgetCsv: async (file: File, folder: unknown) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folder", JSON.stringify(folder));
+
+    let response: Response;
+    try {
+      response = await fetchWithFallback("/budget/analyze-csv", {
+        method: "POST",
+        body: formData,
+      });
+    } catch {
+      throw new Error("Backend not reachable. Start the API server and try again.");
+    }
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.message || "CSV analysis failed");
+    }
+
+    return response.json() as Promise<Record<string, unknown>>;
+  },
+  parseAttendance: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    let response: Response;
+
+    try {
+      response = await fetchWithFallback("/attendance/parse", {
+        method: "POST",
+        body: formData,
+      });
+    } catch {
+      throw new Error("Backend not reachable. Start the API server and try again.");
+    }
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.message || "Attendance parsing failed");
+    }
+
+    return response.json() as Promise<{
+      students: Array<{ id: string; name: string; roll: string; year?: string; branch?: string; division?: string; selected?: boolean }>;
+      metadata: { sourceFile: string; rowsParsed: number; years: string[]; branches: string[]; divisions: string[] };
+    }>;
+  },
+  exportAttendance: (body: unknown) => requestJson<{ fileName: string; pdfBase64: string }>("/attendance/export", { method: "POST", body }),
+};
+
+export const downloadBase64Pdf = (base64: string, fileName: string) => {
+  const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+  const blob = new Blob([bytes], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  anchor.click();
+  URL.revokeObjectURL(url);
+};
+
+export const base64PdfToObjectUrl = (base64: string) => {
+  const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+  const blob = new Blob([bytes], { type: "application/pdf" });
+  return URL.createObjectURL(blob);
+};

@@ -3,7 +3,7 @@ import cors from "cors";
 import multer from "multer";
 import { config } from "./config.js";
 import { bufferToBase64 } from "./utils.js";
-import { generateBudgetReportDocument, generateProposalDocument, generateReportDocument } from "./services/documents.js";
+import { generateBudgetEstimationDocument, generateBudgetReportDocument, generateProposalDocument, generateReportDocument } from "./services/documents.js";
 import { analyzeBudget, analyzeBudgetFolder, buildTimeline, compilePostEventSummary, estimateBudgetFromHistory, parseBudgetCsv } from "./services/planning.js";
 import { parseAttendanceFile, buildAttendancePdf } from "./services/attendance.js";
 import { generateFlyerConcept } from "./services/flyers.js";
@@ -53,6 +53,19 @@ app.post("/api/documents/report", async (req, res, next) => {
 app.post("/api/documents/budget-report", async (req, res, next) => {
   try {
     const result = await generateBudgetReportDocument(req.body);
+    res.json({
+      fileName: result.fileName,
+      summary: result.summary,
+      pdfBase64: bufferToBase64(result.pdfBuffer),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/documents/budget-estimation", async (req, res, next) => {
+  try {
+    const result = await generateBudgetEstimationDocument(req.body);
     res.json({
       fileName: result.fileName,
       summary: result.summary,

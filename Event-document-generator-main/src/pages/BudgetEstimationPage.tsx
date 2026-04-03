@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { Download, Eye, LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
 import BudgetWorkspaceShell from "@/components/BudgetWorkspaceShell";
-import { api } from "@/lib/api";
+import { api, base64PdfToObjectUrl, downloadBase64Pdf } from "@/lib/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatBudgetCurrency, loadBudgetCategories, loadBudgetRecords, StoredBudgetRecord } from "@/lib/budgetStorage";
+import { COLLEGE_BRAND } from "@/lib/clubs";
 
 type EstimateResponse = {
   summary?: string;
@@ -51,45 +52,63 @@ const BudgetEstimationPage = () => {
     }
   };
 
-  const createEstimatePdfUrl = async () => {
-    if (!estimate) {
+  const assetUrlToDataUrl = async (assetPath?: string) => {
+    if (!assetPath) {
       return "";
     }
-    const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
-    const pdf = await PDFDocument.create();
-    const page = pdf.addPage([595.28, 841.89]);
-    const font = await pdf.embedFont(StandardFonts.Helvetica);
-    const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-    let y = 790;
 
-    page.drawText("Budget Estimation Report", { x: 42, y, size: 22, font: bold, color: rgb(0.08, 0.08, 0.1) });
-    y -= 30;
-    page.drawText(`Event Type: ${eventType}`, { x: 42, y, size: 11, font });
-    y -= 18;
-    page.drawText(`Audience Size: ${attendees}`, { x: 42, y, size: 11, font });
-    y -= 28;
-    page.drawText(`Estimated Total: ${estimate.estimatedTotalFormatted || formatBudgetCurrency(estimate.estimatedTotal || 0)}`, { x: 42, y, size: 13, font: bold });
-    y -= 28;
-    page.drawText("Summary", { x: 42, y, size: 13, font: bold });
-    y -= 18;
-    page.drawText(String(estimate.summary || ""), { x: 42, y, size: 10, font, maxWidth: 500, lineHeight: 14 });
-    y -= 90;
-    page.drawText("Breakdown", { x: 42, y, size: 13, font: bold });
-    y -= 20;
-    (estimate.breakdown || []).forEach((item) => {
-      page.drawText(`${item.label}: ${item.amountFormatted}`, { x: 42, y, size: 10, font });
-      y -= 16;
-    });
-    y -= 12;
-    page.drawText("Notes / Tips from previous budgets", { x: 42, y, size: 13, font: bold });
-    y -= 20;
-    (estimate.recommendations || []).forEach((item) => {
-      page.drawText(`- ${item}`, { x: 42, y, size: 10, font, maxWidth: 500, lineHeight: 14 });
-      y -= 18;
-    });
+    try {
+      const response = await fetch(assetPath);
+      if (!response.ok) {
+        return "";
+      }
 
-    const bytes = await pdf.save();
-    return URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+      const blob = await response.blob();
+      return await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(String(reader.result || ""));
+        reader.readAsDataURL(blob);
+      });
+    } catch {
+      return "";
+    }
+  };
+
+  const resolveLogoAsset = async (basePath?: string) => {
+    if (!basePath) {
+      return "";
+    }
+
+    const candidates = [".png", ".jpg", ".jpeg", ".webp"].map((extension) => `${basePath}${extension}`);
+    for (const candidate of candidates) {
+      const value = await assetUrlToDataUrl(candidate);
+      if (value) {
+        return value;
+      }
+    }
+    return "";
+  };
+
+  const createEstimatePdf = async () => {
+    if (!estimate) {
+      return null;
+    }
+    const collegeLogo = await resolveLogoAsset(COLLEGE_BRAND.logoBasePath);
+    return api.generateBudgetEstimation({
+      collegeName: COLLEGE_BRAND.name,
+      collegeAddress: COLLEGE_BRAND.address,
+      collegeAcronym: COLLEGE_BRAND.acronym,
+      collegeBrandColor: COLLEGE_BRAND.hex,
+      collegeLogo,
+      date: new Date().toISOString(),
+      title: "Budget Estimation Report",
+      eventType,
+      attendees,
+      summary: estimate.summary,
+      estimatedTotalFormatted: estimate.estimatedTotalFormatted || formatBudgetCurrency(estimate.estimatedTotal || 0),
+      breakdown: estimate.breakdown || [],
+      recommendations: estimate.recommendations || [],
+    });
   };
 
   const previewEstimatePdf = async () => {
@@ -97,7 +116,11 @@ const BudgetEstimationPage = () => {
       toast.error("Generate an estimate first.");
       return;
     }
-    const url = await createEstimatePdfUrl();
+    const response = await createEstimatePdf();
+    if (!response) {
+      return;
+    }
+    const url = base64PdfToObjectUrl(response.pdfBase64);
     setPreviewUrl(url);
   };
 
@@ -106,12 +129,11 @@ const BudgetEstimationPage = () => {
       toast.error("Generate an estimate first.");
       return;
     }
-    const url = await createEstimatePdfUrl();
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `budget-estimate-${eventType.toLowerCase()}-${attendees}.pdf`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    const response = await createEstimatePdf();
+    if (!response) {
+      return;
+    }
+    downloadBase64Pdf(response.pdfBase64, response.fileName || `budget-estimate-${eventType.toLowerCase()}-${attendees}.pdf`);
     toast.success("Estimation PDF exported.");
   };
 

@@ -7,6 +7,80 @@ const formatInr = (value) =>
     maximumFractionDigits: 0,
   })}`;
 
+const EVENT_ESTIMATION_PROFILES = {
+  fest: {
+    breakdown: { Lighting: 0.24, Food: 0.34, Logistics: 0.22, Misc: 0.2 },
+    notes: [
+      "Reserve a contingency buffer for stage, sound, and crowd-control changes because fest costs usually rise in the final week.",
+      "Lock food vendors and decoration vendors early, since these are usually the biggest price-variation points for a fest.",
+    ],
+  },
+  seminar: {
+    breakdown: { Lighting: 0.12, Food: 0.24, Logistics: 0.34, Misc: 0.18 },
+    notes: [
+      "Keep a separate allocation for speaker travel, AV support, and printed materials because seminars often depend on these fixed costs.",
+      "Review registration count against hall capacity early so hospitality and kit costs do not scale unnecessarily.",
+    ],
+  },
+  repair: {
+    breakdown: { Lighting: 0.18, Food: 0.06, Logistics: 0.28, Misc: 0.24 },
+    notes: [
+      "Collect at least two vendor quotations before finalizing repair work because labor and material charges vary widely across vendors.",
+      "Keep a higher contingency for repair projects because hidden material replacement often appears after work starts.",
+    ],
+  },
+  research: {
+    breakdown: { Lighting: 0.08, Food: 0.06, Logistics: 0.26, Misc: 0.32 },
+    notes: [
+      "Protect the prototype and testing allocation first, because research budgets usually get delayed when procurement is underestimated.",
+      "Track recurring software, cloud, or lab-consumable costs separately so the project team can justify repeat spending clearly.",
+    ],
+  },
+  infrastructure: {
+    breakdown: { Lighting: 0.16, Food: 0.04, Logistics: 0.3, Misc: 0.24 },
+    notes: [
+      "Plan for installation and transport separately from purchase cost because infrastructure work usually includes hidden setup charges.",
+      "Keep inspection and maintenance follow-up costs visible so the total ownership cost is not understated.",
+    ],
+  },
+  sports: {
+    breakdown: { Lighting: 0.1, Food: 0.26, Logistics: 0.3, Misc: 0.18 },
+    notes: [
+      "Ground preparation, participant refreshments, and awards usually consume the biggest share, so validate those vendors first.",
+      "Keep an emergency reserve for weather-related adjustments, extra kits, or transport changes during sports events.",
+    ],
+  },
+  marketing: {
+    breakdown: { Lighting: 0.05, Food: 0.08, Logistics: 0.22, Misc: 0.3 },
+    notes: [
+      "Separate print and digital promotion costs so the outreach team can measure which channel is actually delivering value.",
+      "Creative revisions tend to add cost late, so freeze campaign assets before booking production or ad spend.",
+    ],
+  },
+  hospitality: {
+    breakdown: { Lighting: 0.08, Food: 0.4, Logistics: 0.24, Misc: 0.16 },
+    notes: [
+      "Hospitality budgets should keep catering, welcome kits, and guest transport under separate headings for easier approval review.",
+      "Confirm guest count closer to the event date to avoid overcommitting on meal plans and accommodation blocks.",
+    ],
+  },
+  general: {
+    breakdown: { Lighting: 0.18, Food: 0.32, Logistics: 0.24, Misc: 0.12 },
+    notes: [
+      "Keep a contingency amount outside the visible line items for operational flexibility.",
+      "Lock the major vendors early to avoid last-minute pricing changes.",
+    ],
+  },
+};
+
+const resolveEventProfile = (eventType = "") => {
+  const normalized = String(eventType || "").toLowerCase();
+  return (
+    Object.entries(EVENT_ESTIMATION_PROFILES).find(([key]) => normalized.includes(key))?.[1] ||
+    EVENT_ESTIMATION_PROFILES.general
+  );
+};
+
 const createProposalPrompt = (payload) => `
 You are writing a formal college event proposal body.
 
@@ -180,6 +254,7 @@ ${clampText(payload.csvSummary || "No CSV uploaded.", 2000)}
 };
 
 export const generateBudgetEstimateNarrative = async (payload) => {
+  const eventProfile = resolveEventProfile(payload.eventType);
   const prompt = `
 You are estimating a new college event budget using past event spending history.
 
@@ -195,33 +270,36 @@ Return:
 1. One short summary paragraph.
 2. A suggested total estimate as a plain number.
 3. Four short breakdown items for Lighting, Food, Logistics, Misc.
-4. Two practical recommendations.
+4. Two practical recommendations that are specific to the event type.
 
 Keep it plain text.
 `.trim();
 
   const text = await generateTextWithGemini(prompt);
   if (!text) {
+    const relatedHistory = (payload.history || []).filter((record) =>
+      String(record.category || "")
+        .toLowerCase()
+        .includes(String(payload.eventType || "").toLowerCase())
+    );
+    const sourceHistory = relatedHistory.length > 0 ? relatedHistory : payload.history || [];
     const averageSpend =
-      payload.history && payload.history.length > 0
-        ? payload.history.reduce((sum, record) => sum + Number(record.grandTotal || 0), 0) / payload.history.length
+      sourceHistory.length > 0
+        ? sourceHistory.reduce((sum, record) => sum + Number(record.grandTotal || 0), 0) / sourceHistory.length
         : 100000;
     const attendeeFactor = Math.max(Number(payload.attendees || 0), 1) * 220;
     const estimate = Math.round((averageSpend + attendeeFactor) / 2);
     return {
       source: "template",
-      summary: `The estimate is based on previous ${payload.eventType} and related event records, adjusted for an audience size of ${payload.attendees}.`,
+      summary: `The estimate is based on ${sourceHistory.length} previous ${payload.eventType} or related budget records, adjusted for an audience size of ${payload.attendees}.`,
       estimatedTotal: estimate,
       breakdown: {
-        Lighting: Math.round(estimate * 0.18),
-        Food: Math.round(estimate * 0.32),
-        Logistics: Math.round(estimate * 0.24),
-        Misc: Math.round(estimate * 0.12),
+        Lighting: Math.round(estimate * eventProfile.breakdown.Lighting),
+        Food: Math.round(estimate * eventProfile.breakdown.Food),
+        Logistics: Math.round(estimate * eventProfile.breakdown.Logistics),
+        Misc: Math.round(estimate * eventProfile.breakdown.Misc),
       },
-      recommendations: [
-        "Lock the major vendors early to avoid last-minute pricing changes.",
-        "Keep a contingency amount outside the visible line items for operational flexibility.",
-      ],
+      recommendations: eventProfile.notes,
     };
   }
 
@@ -233,11 +311,11 @@ Keep it plain text.
     summary: lines[0] || text,
     estimatedTotal,
     breakdown: {
-      Lighting: Math.round(estimatedTotal * 0.18),
-      Food: Math.round(estimatedTotal * 0.32),
-      Logistics: Math.round(estimatedTotal * 0.24),
-      Misc: Math.round(estimatedTotal * 0.12),
+      Lighting: Math.round(estimatedTotal * eventProfile.breakdown.Lighting),
+      Food: Math.round(estimatedTotal * eventProfile.breakdown.Food),
+      Logistics: Math.round(estimatedTotal * eventProfile.breakdown.Logistics),
+      Misc: Math.round(estimatedTotal * eventProfile.breakdown.Misc),
     },
-    recommendations: lines.slice(-2),
+    recommendations: lines.slice(-2).length > 0 ? lines.slice(-2) : eventProfile.notes,
   };
 };

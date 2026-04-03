@@ -107,6 +107,14 @@ const truncateToWidth = (text, font, fontSize, maxWidth) => {
   return output ? `${output}...` : "";
 };
 
+const fitFontSizeToWidth = (text, font, initialSize, maxWidth, minSize = 8) => {
+  let fontSize = initialSize;
+  while (fontSize > minSize && font.widthOfTextAtSize(String(text || ""), fontSize) > maxWidth) {
+    fontSize -= 0.2;
+  }
+  return fontSize;
+};
+
 const parseDataUri = (value = "") => {
   const match = String(value).match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
   if (!match) {
@@ -244,19 +252,16 @@ export const buildPdfDocument = async ({
   y -= 18;
 
   const addressText = collegeAddress || "College Address";
-  const addressLines = wrapText(addressText, font, 10, PAGE.width - PAGE.margin * 2 - 120);
-  for (const line of addressLines) {
-    const addressWidth = font.widthOfTextAtSize(line, 10);
-    page.drawText(line, {
-      x: (PAGE.width - addressWidth) / 2,
-      y,
-      size: 10,
-      font,
-      color: rgb(0.35, 0.35, 0.35),
-    });
-    y -= 14;
-  }
-  y -= 14;
+  const addressFontSize = fitFontSizeToWidth(addressText, font, 10, PAGE.width - PAGE.margin * 2 - 110, 8);
+  const addressWidth = font.widthOfTextAtSize(addressText, addressFontSize);
+  page.drawText(addressText, {
+    x: (PAGE.width - addressWidth) / 2,
+    y,
+    size: addressFontSize,
+    font,
+    color: rgb(0.35, 0.35, 0.35),
+  });
+  y -= 28;
 
   page.drawLine({
     start: { x: PAGE.margin, y },
@@ -435,9 +440,11 @@ export const buildBudgetSheetPdf = async ({
 
     const safeAddress = collegeAddress || "College Address";
     const safeTitle = title || "Budget Report";
-    const titleWidth = bold.widthOfTextAtSize(safeTitle, 13);
+    const headerTextLeft = LANDSCAPE_PAGE.margin + 74;
+    const headerTextWidth = LANDSCAPE_PAGE.width - headerTextLeft - LANDSCAPE_PAGE.margin;
+    const titleWidth = Math.min(bold.widthOfTextAtSize(safeTitle, 13), headerTextWidth);
     page.drawText(safeTitle, {
-      x: (LANDSCAPE_PAGE.width - titleWidth) / 2,
+      x: headerTextLeft + (headerTextWidth - titleWidth) / 2,
       y,
       size: 13,
       font: bold,
@@ -445,13 +452,13 @@ export const buildBudgetSheetPdf = async ({
     });
     y -= 16;
 
-    const addressLines = wrapText(safeAddress, font, 10.5, LANDSCAPE_PAGE.width - LANDSCAPE_PAGE.margin * 2 - 120);
+    const addressLines = wrapText(safeAddress, font, 10.2, headerTextWidth);
     addressLines.forEach((line) => {
-      const addressWidth = font.widthOfTextAtSize(line, 10.5);
+      const addressWidth = font.widthOfTextAtSize(line, 10.2);
       page.drawText(line, {
-        x: (LANDSCAPE_PAGE.width - addressWidth) / 2,
+        x: headerTextLeft + (headerTextWidth - addressWidth) / 2,
         y,
-        size: 10.5,
+        size: 10.2,
         font,
         color: rgb(0.38, 0.38, 0.4),
       });
@@ -620,7 +627,7 @@ export const buildBudgetSheetPdf = async ({
     }
 
     await ensureSpace(66);
-    const totalsX = LANDSCAPE_PAGE.width - LANDSCAPE_PAGE.margin - 235;
+    const totalsX = LANDSCAPE_PAGE.width - LANDSCAPE_PAGE.margin - 220;
     const totalRows = [
       ["Subtotal", formatCurrency(record.subtotal || 0)],
       ["Tax Total", formatCurrency(record.taxTotal || 0)],
@@ -629,25 +636,217 @@ export const buildBudgetSheetPdf = async ({
     ];
     totalRows.forEach(([label, value], index) => {
       const isGrand = index === totalRows.length - 1;
+      const rowY = y - index * 18;
       page.drawText(label, {
         x: totalsX,
-        y: y - index * 18,
+        y: rowY,
         size: isGrand ? 9.4 : 8.8,
         font: isGrand ? bold : font,
         color: rgb(0.18, 0.18, 0.2),
       });
       page.drawText(value, {
         x: LANDSCAPE_PAGE.width - LANDSCAPE_PAGE.margin - 8 - bold.widthOfTextAtSize(value, isGrand ? 9.4 : 8.8),
-        y: y - index * 18,
+        y: rowY,
         size: isGrand ? 9.4 : 8.8,
         font: isGrand ? bold : font,
         color: rgb(0.12, 0.12, 0.14),
       });
     });
-    y -= 84;
+    y -= 88;
   }
 
   drawFooter();
+  return Buffer.from(await pdfDoc.save());
+};
+
+export const buildBudgetEstimatePdf = async ({
+  collegeName,
+  collegeAddress,
+  date,
+  title,
+  collegeLogo,
+  collegeAcronym,
+  collegeBrandColor,
+  eventType,
+  attendees,
+  summary,
+  estimatedTotalFormatted,
+  breakdown = [],
+  recommendations = [],
+}) => {
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([PAGE.width, PAGE.height]);
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  let y = PAGE.height - PAGE.margin;
+  const headerTextLeft = PAGE.margin + 76;
+  const headerTextWidth = PAGE.width - headerTextLeft - PAGE.margin;
+
+  const collegeImageDrawn = await drawImageFromData(pdfDoc, collegeLogo, page, PAGE.margin, y + 10);
+  if (!collegeImageDrawn) {
+    drawBadge(page, bold, collegeAcronym || "PCE", PAGE.margin, y + 10, collegeBrandColor || "#111827");
+  }
+
+  const safeCollegeName = collegeName || "College Name";
+  const collegeNameWidth = Math.min(bold.widthOfTextAtSize(safeCollegeName, 15), headerTextWidth);
+  page.drawText(safeCollegeName, {
+    x: headerTextLeft + (headerTextWidth - collegeNameWidth) / 2,
+    y,
+    size: 15,
+    font: bold,
+    color: rgb(0.08, 0.08, 0.1),
+  });
+  y -= 18;
+
+  const safeAddress = collegeAddress || "College Address";
+  const addressFontSize = fitFontSizeToWidth(safeAddress, font, 9.2, headerTextWidth, 7.6);
+  const addressWidth = font.widthOfTextAtSize(safeAddress, addressFontSize);
+  page.drawText(safeAddress, {
+    x: headerTextLeft + (headerTextWidth - addressWidth) / 2,
+    y,
+    size: addressFontSize,
+    font,
+    color: rgb(0.35, 0.35, 0.35),
+  });
+  y -= 24;
+
+  const safeTitle = title || "Budget Estimation Report";
+  const titleWidth = Math.min(bold.widthOfTextAtSize(safeTitle, 13), headerTextWidth);
+  page.drawText(safeTitle, {
+    x: headerTextLeft + (headerTextWidth - titleWidth) / 2,
+    y,
+    size: 13,
+    font: bold,
+    color: rgb(0.12, 0.12, 0.12),
+  });
+  y -= 20;
+
+  page.drawText(`Date: ${normalizeDate(date)}`, {
+    x: PAGE.margin,
+    y,
+    size: 10.2,
+    font,
+    color: rgb(0.18, 0.18, 0.2),
+  });
+  y -= 18;
+
+  page.drawLine({
+    start: { x: PAGE.margin, y },
+    end: { x: PAGE.width - PAGE.margin, y },
+    thickness: 1.1,
+    color: rgb(0.22, 0.22, 0.22),
+  });
+  y -= 22;
+
+  const metaRows = [
+    `Event Type: ${eventType || "General"}`,
+    `Expected Audience: ${attendees || "0"}`,
+    `Estimated Total: ${estimatedTotalFormatted || formatCurrency(0)}`,
+  ];
+
+  metaRows.forEach((row) => {
+    page.drawText(row, {
+      x: PAGE.margin,
+      y,
+      size: 10.8,
+      font: row.startsWith("Estimated Total") ? bold : font,
+      color: rgb(0.14, 0.14, 0.16),
+    });
+    y -= 18;
+  });
+  y -= 8;
+
+  page.drawText("Summary", {
+    x: PAGE.margin,
+    y,
+    size: 12,
+    font: bold,
+  });
+  y -= 18;
+  wrapText(summary || "", font, 10.5, PAGE.width - PAGE.margin * 2).forEach((line) => {
+    page.drawText(line, {
+      x: PAGE.margin,
+      y,
+      size: 10.5,
+      font,
+      color: rgb(0.16, 0.16, 0.18),
+    });
+    y -= 14;
+  });
+  y -= 12;
+
+  page.drawText("Suggested Breakdown", {
+    x: PAGE.margin,
+    y,
+    size: 12,
+    font: bold,
+  });
+  y -= 18;
+
+  breakdown.forEach((item) => {
+    page.drawRectangle({
+      x: PAGE.margin,
+      y: y - 18,
+      width: PAGE.width - PAGE.margin * 2,
+      height: 18,
+      color: rgb(0.97, 0.97, 0.98),
+    });
+    page.drawText(String(item.label || ""), {
+      x: PAGE.margin + 8,
+      y: y - 12,
+      size: 10,
+      font,
+      color: rgb(0.14, 0.14, 0.16),
+    });
+    const value = String(item.amountFormatted || "");
+    page.drawText(value, {
+      x: PAGE.width - PAGE.margin - 8 - bold.widthOfTextAtSize(value, 10),
+      y: y - 12,
+      size: 10,
+      font: bold,
+      color: rgb(0.12, 0.12, 0.14),
+    });
+    y -= 22;
+  });
+  y -= 10;
+
+  if (recommendations.length > 0) {
+    page.drawText("Notes / Suggestions", {
+      x: PAGE.margin,
+      y,
+      size: 12,
+      font: bold,
+    });
+    y -= 18;
+    recommendations.forEach((entry) => {
+      wrapText(`- ${entry}`, font, 10.2, PAGE.width - PAGE.margin * 2 - 8).forEach((line) => {
+        page.drawText(line, {
+          x: PAGE.margin + 6,
+          y,
+          size: 10.2,
+          font,
+          color: rgb(0.16, 0.16, 0.18),
+        });
+        y -= 14;
+      });
+      y -= 6;
+    });
+  }
+
+  page.drawLine({
+    start: { x: PAGE.margin, y: 58 },
+    end: { x: PAGE.width - PAGE.margin, y: 58 },
+    thickness: 0.8,
+    color: rgb(0.8, 0.8, 0.8),
+  });
+  page.drawText("Generated by DocuPrint Estimation Engine", {
+    x: PAGE.margin,
+    y: 42,
+    size: 9,
+    font,
+    color: rgb(0.4, 0.4, 0.4),
+  });
+
   return Buffer.from(await pdfDoc.save());
 };
 
