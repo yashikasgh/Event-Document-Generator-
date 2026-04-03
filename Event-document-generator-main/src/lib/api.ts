@@ -1,4 +1,8 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+const PRIMARY_API_BASE = import.meta.env.VITE_API_BASE_URL || "/api";
+const DEV_FALLBACK_API_BASES = ["/api", "http://localhost:8790/api", "http://localhost:8787/api"];
+const API_BASE_CANDIDATES = Array.from(
+  new Set([PRIMARY_API_BASE, ...(import.meta.env.DEV ? DEV_FALLBACK_API_BASES : [])].filter(Boolean))
+);
 
 type JsonOptions = {
   method?: string;
@@ -6,21 +10,39 @@ type JsonOptions = {
   headers?: Record<string, string>;
 };
 
-async function requestJson<T>(path: string, options: JsonOptions = {}): Promise<T> {
-  let response: Response;
+const normalizeApiBase = (base: string) => (base.endsWith("/") ? base.slice(0, -1) : base);
 
-  try {
-    response = await fetch(`${API_BASE}${path}`, {
-      method: options.method || "GET",
-      headers: {
-        "Content-Type": "application/json",
-        ...(options.headers || {}),
-      },
-      body: options.body ? JSON.stringify(options.body) : undefined,
-    });
-  } catch {
-    throw new Error("Backend not reachable. Start the API server and try again.");
+const buildBackendUnreachableMessage = (attemptedBases: string[]) =>
+  `Backend not reachable. Tried: ${attemptedBases.join(", ")}. Start the API server and try again.`;
+
+async function fetchWithApiFallback(path: string, init: RequestInit): Promise<Response> {
+  const attemptedBases: string[] = [];
+  let lastError: unknown;
+
+  for (const candidate of API_BASE_CANDIDATES) {
+    const base = normalizeApiBase(candidate);
+    attemptedBases.push(base);
+
+    try {
+      return await fetch(`${base}${path}`, init);
+    } catch (error) {
+      lastError = error;
+    }
   }
+
+  const detail = lastError instanceof Error && lastError.message ? ` ${lastError.message}` : "";
+  throw new Error(`${buildBackendUnreachableMessage(attemptedBases)}${detail}`.trim());
+}
+
+async function requestJson<T>(path: string, options: JsonOptions = {}): Promise<T> {
+  const response = await fetchWithApiFallback(path, {
+    method: options.method || "GET",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
 
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
@@ -39,7 +61,23 @@ export const api = {
     }),
   generateReport: (body: unknown) => requestJson<{ fileName: string; pdfBase64: string; summary: Record<string, unknown> }>("/documents/report", { method: "POST", body }),
   generateFlyer: (body: unknown) =>
-    requestJson<{ prompt: string; provider: string; status: string; message?: string; creativeBrief?: string; imageBase64?: string | null }>("/flyers/generate", {
+    requestJson<{
+      prompt: string;
+      provider: string;
+      status: string;
+      message?: string;
+      creativeBrief?: string;
+      fullFlyerBase64?: string | null;
+      fullFlyerContentType?: string | null;
+      backgroundBase64?: string | null;
+      backgroundContentType?: string | null;
+      layout?: {
+        collegeName: string;
+        clubName: string;
+        title: string;
+        dimensions: { width: number; height: number };
+      };
+    }>("/flyers/generate", {
       method: "POST",
       body,
     }),
@@ -49,16 +87,10 @@ export const api = {
   parseAttendance: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-    let response: Response;
-
-    try {
-      response = await fetch(`${API_BASE}/attendance/parse`, {
-        method: "POST",
-        body: formData,
-      });
-    } catch {
-      throw new Error("Backend not reachable. Start the API server and try again.");
-    }
+    const response = await fetchWithApiFallback("/attendance/parse", {
+      method: "POST",
+      body: formData,
+    });
 
     if (!response.ok) {
       const payload = await response.json().catch(() => ({}));
