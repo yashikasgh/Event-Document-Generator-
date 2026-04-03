@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { LoaderCircle, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
 import BudgetWorkspaceShell from "@/components/BudgetWorkspaceShell";
 import {
   AlertDialog,
@@ -47,24 +48,57 @@ const createExpense = (): BudgetItemForm => ({
 });
 
 const BudgetPlannerPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [categories, setCategories] = useState<string[]>([]);
   const [records, setRecords] = useState<StoredBudgetRecord[]>([]);
+  const [currentDraftId, setCurrentDraftId] = useState("");
   const [projectTitle, setProjectTitle] = useState("");
   const [category, setCategory] = useState("");
   const [newCategory, setNewCategory] = useState("");
   const [expectedBudget, setExpectedBudget] = useState("");
   const [description, setDescription] = useState("");
-  const [lineItems, setLineItems] = useState<BudgetItemForm[]>([createExpense()]);
+  const [lineItems, setLineItems] = useState<BudgetItemForm[]>([]);
   const [analysis, setAnalysis] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState("");
 
   useEffect(() => {
     const loadedCategories = loadBudgetCategories();
+    const loadedRecords = loadBudgetRecords();
     setCategories(loadedCategories);
     setCategory(loadedCategories[0] || "");
-    setRecords(loadBudgetRecords());
-  }, []);
+    setRecords(loadedRecords);
+
+    const draftId = searchParams.get("draft");
+    if (!draftId) {
+      return;
+    }
+
+    const draft = loadedRecords.find((record) => record.id === draftId);
+    if (!draft) {
+      return;
+    }
+
+    setCurrentDraftId(draft.id);
+    setProjectTitle(draft.title);
+    setCategory(draft.category);
+    setExpectedBudget(String(draft.expectedBudget || ""));
+    setDescription(draft.description || "");
+    setLineItems(
+      draft.items.length > 0
+        ? draft.items.map((item) => ({
+            id: item.id,
+            label: item.label,
+            amount: item.unitPrice ? String(item.unitPrice) : "",
+            purchaseDate: item.purchaseDate || "",
+            paymentMethod: item.paymentMethod || PAYMENT_METHODS[0],
+            notes: item.notes || "",
+            vendorName: item.vendorName || "",
+            expenseType: item.expenseType || EXPENSE_TYPES[0],
+          }))
+        : []
+    );
+  }, [searchParams]);
 
   const addCategory = () => {
     const value = newCategory.trim();
@@ -81,27 +115,32 @@ const BudgetPlannerPage = () => {
     setLineItems((current) => current.map((item) => (item.id === id ? { ...item, [key]: value } : item)));
   };
 
+  const filledLineItems = useMemo(
+    () => lineItems.filter((item) => item.label.trim() || item.amount || item.vendorName.trim() || item.notes.trim() || item.purchaseDate),
+    [lineItems]
+  );
+
   const totals = useMemo(() => {
-    const subtotal = lineItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const subtotal = filledLineItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
     const tax = subtotal * 0.08;
     return {
       subtotal,
       tax,
       total: subtotal + tax,
     };
-  }, [lineItems]);
+  }, [filledLineItems]);
 
   const createBudgetRecord = (): StoredBudgetRecord => ({
-    id: `${Date.now()}`,
+    id: currentDraftId || `${Date.now()}`,
     title: projectTitle || "Untitled Event",
-    vendor: lineItems[0]?.vendorName || "Unassigned vendor",
+    vendor: filledLineItems[0]?.vendorName || "Unassigned vendor",
     date: new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
     category: category || categories[0] || "Fest",
-    paymentMethod: lineItems[0]?.paymentMethod || PAYMENT_METHODS[0],
-    receiptId: `BGT-${Date.now()}`,
+    paymentMethod: filledLineItems[0]?.paymentMethod || PAYMENT_METHODS[0],
+    receiptId: currentDraftId ? `BGT-${currentDraftId}` : `BGT-${Date.now()}`,
     description,
     expectedBudget: Number(expectedBudget || 0),
-    items: lineItems.map((item, index) => ({
+    items: filledLineItems.map((item, index) => ({
       id: item.id,
       label: item.label || `Expense ${index + 1}`,
       quantity: 1,
@@ -119,16 +158,22 @@ const BudgetPlannerPage = () => {
     taxTotal: Number(totals.tax.toFixed(2)),
     discount: 0,
     grandTotal: Number(totals.total.toFixed(2)),
+    isDraft: filledLineItems.length === 0,
   });
 
   const handleAnalyze = async () => {
+    if (filledLineItems.length === 0) {
+      toast.error("Add at least one expense before running analysis.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await api.analyzeBudget({
         expectedAttendees: "",
         durationHours: "",
         sponsorshipAmount: "0",
-        lineItems: lineItems.map((item) => ({
+        lineItems: filledLineItems.map((item) => ({
           label: item.label,
           quantity: 1,
           unitCost: item.amount || 0,
@@ -145,11 +190,22 @@ const BudgetPlannerPage = () => {
   };
 
   const handleSave = () => {
+    if (!projectTitle.trim()) {
+      toast.error("Enter an event name before saving the folder.");
+      return;
+    }
+
     const record = createBudgetRecord();
-    const updated = [record, ...records];
+    const updated = currentDraftId
+      ? records.map((entry) => (entry.id === currentDraftId ? record : entry))
+      : [record, ...records];
     setRecords(updated);
     saveBudgetRecords(updated);
-    toast.success("Budget saved to history.");
+    if (!currentDraftId) {
+      setCurrentDraftId(record.id);
+      setSearchParams({ draft: record.id });
+    }
+    toast.success(record.isDraft ? "Budget folder draft saved. You can add expenses later." : "Budget saved to history.");
   };
 
   return (
@@ -158,7 +214,7 @@ const BudgetPlannerPage = () => {
       subtitle="Clean event budget setup with expense entry and estimation support"
       actions={
         <>
-          <button onClick={handleSave} className="brutal-btn-outline py-3">Save Budget</button>
+          <button onClick={handleSave} className="brutal-btn-outline py-3">{currentDraftId ? "Update Budget" : "Save Folder"}</button>
           <button onClick={handleAnalyze} className="brutal-btn-primary flex items-center gap-2 py-3" disabled={isLoading}>
             {isLoading ? <LoaderCircle className="h-4 w-4 animate-spin" strokeWidth={2.4} /> : null}
             Analyze
@@ -202,7 +258,7 @@ const BudgetPlannerPage = () => {
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-xl font-bold">Expense Entries</h2>
-            <p className="text-sm text-muted-foreground">Add expense cards for this budget.</p>
+            <p className="text-sm text-muted-foreground">You can save the folder first, then add expense cards any time.</p>
           </div>
           <button onClick={() => setLineItems((current) => [...current, createExpense()])} className="brutal-btn-primary flex items-center gap-2 py-3">
             <Plus className="h-4 w-4" strokeWidth={2.4} />
@@ -211,6 +267,11 @@ const BudgetPlannerPage = () => {
         </div>
 
         <div className="space-y-4">
+          {lineItems.length === 0 ? (
+            <div className="rounded-[20px] border-2 border-dashed border-foreground/20 px-5 py-10 text-center text-sm text-muted-foreground">
+              No expenses added yet. Save the folder now, or add expenses whenever you're ready.
+            </div>
+          ) : null}
           {lineItems.map((item, index) => (
             <div key={item.id} className="rounded-[20px] border border-foreground/10 bg-background p-4">
               <div className="grid gap-4 lg:grid-cols-5">
@@ -295,7 +356,7 @@ const BudgetPlannerPage = () => {
             </div>
           ) : (
             <div className="mt-4 rounded-[18px] border-2 border-dashed border-foreground/20 px-5 py-10 text-center text-sm text-muted-foreground">
-              No estimate yet. Use Analyze to generate suggestions.
+              {lineItems.length === 0 ? "Add at least one expense if you want analysis. Folder drafts can still be saved now." : "No estimate yet. Use Analyze to generate suggestions."}
             </div>
           )}
         </div>
@@ -311,7 +372,7 @@ const BudgetPlannerPage = () => {
             <AlertDialogCancel onClick={() => setPendingDeleteId("")}>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                setLineItems((current) => (current.length === 1 ? current : current.filter((entry) => entry.id !== pendingDeleteId)));
+                setLineItems((current) => current.filter((entry) => entry.id !== pendingDeleteId));
                 setPendingDeleteId("");
                 toast.success("Expense removed.");
               }}

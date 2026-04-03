@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, FolderKanban, IndianRupee, Search } from "lucide-react";
 import BudgetWorkspaceShell from "@/components/BudgetWorkspaceShell";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StoredBudgetRecord, formatBudgetCurrency, loadBudgetCategories, loadBudgetRecords } from "@/lib/budgetStorage";
 
@@ -13,6 +20,7 @@ const PreviousBudgetsPage = () => {
   const [amountFilter, setAmountFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -82,7 +90,10 @@ const PreviousBudgetsPage = () => {
             {filtered.map((record) => (
               <button
                 key={record.id}
-                onClick={() => setSelectedRecordId(record.id)}
+                onClick={() => {
+                  setSelectedRecordId(record.id);
+                  setIsDetailsOpen(true);
+                }}
                 className={`rounded-[24px] border-2 p-5 text-left transition-all ${selected?.id === record.id ? "border-foreground bg-card brutal-shadow" : "border-foreground/15 bg-card brutal-shadow-sm"}`}
               >
                 <div className="mb-5 flex items-center justify-between">
@@ -113,37 +124,96 @@ const PreviousBudgetsPage = () => {
                   <h2 className="text-xl font-bold">{selected.title}</h2>
                   <p className="text-sm text-muted-foreground">{selected.description || "Detailed expense view for this event."}</p>
                 </div>
-                <div className="text-sm text-muted-foreground">{selected.vendor}</div>
+                <div className="flex flex-col items-start gap-3 text-sm text-muted-foreground md:items-end">
+                  <span>{selected.vendor}</span>
+                  <button onClick={() => setIsDetailsOpen(true)} className="brutal-btn-outline px-4 py-2 text-xs">
+                    Open Detailed View
+                  </button>
+                </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[820px] text-sm">
-                  <thead>
-                    <tr className="border-b border-foreground/10">
-                      {["Expense Title", "Amount", "Date", "Payment Method", "Expense ID"].map((heading) => (
-                        <th key={heading} className="px-4 py-3 text-left font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                          {heading}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selected.items.map((item) => (
-                      <tr key={item.id} className="border-b border-foreground/8 last:border-none">
-                        <td className="px-4 py-4">{item.label}</td>
-                        <td className="px-4 py-4 font-semibold">{formatBudgetCurrency(item.amount)}</td>
-                        <td className="px-4 py-4">{item.purchaseDate || selected.date}</td>
-                        <td className="px-4 py-4">{item.paymentMethod || selected.paymentMethod}</td>
-                        <td className="px-4 py-4">{item.expenseId || item.id}</td>
+              {selected.items.length === 0 ? (
+                <div className="rounded-[18px] border-2 border-dashed border-foreground/20 px-5 py-10 text-center text-sm text-muted-foreground">
+                  This folder has no expenses yet. Open the draft and add expenses later.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[820px] text-sm">
+                    <thead>
+                      <tr className="border-b border-foreground/10">
+                        {["Expense Title", "Amount", "Date", "Payment Method", "Expense ID"].map((heading) => (
+                          <th key={heading} className="px-4 py-3 text-left font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                            {heading}
+                          </th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {selected.items.map((item) => (
+                        <tr key={item.id} className="border-b border-foreground/8 last:border-none">
+                          <td className="px-4 py-4">{item.label}</td>
+                          <td className="px-4 py-4 font-semibold">{formatBudgetCurrency(item.amount)}</td>
+                          <td className="px-4 py-4">{item.purchaseDate || selected.date}</td>
+                          <td className="px-4 py-4">{item.paymentMethod || selected.paymentMethod}</td>
+                          <td className="px-4 py-4">{item.expenseId || item.id}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           ) : null}
         </>
       )}
+
+      <Dialog open={isDetailsOpen && !!selected} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-w-5xl rounded-[24px] border-2 border-foreground bg-card p-0">
+          {selected ? (
+            <>
+              <DialogHeader className="border-b border-foreground/10 px-6 py-5">
+                <DialogTitle className="text-2xl font-bold">{selected.title}</DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground">
+                  {selected.description || "Detailed expenditure table"} | {selected.category} | {selected.vendor}
+                </DialogDescription>
+              </DialogHeader>
+
+              {selected.items.length === 0 ? (
+                <div className="px-6 py-12 text-center text-sm text-muted-foreground">
+                  No expenses have been added to this folder yet.
+                </div>
+              ) : (
+                <div className="max-h-[70vh] overflow-auto px-6 py-5">
+                  <table className="w-full min-w-[920px] text-sm">
+                    <thead>
+                      <tr className="border-b border-foreground/10">
+                        {["Expense Title", "Amount", "Date", "Payment Method", "Expense ID", "Vendor", "Notes"].map((heading) => (
+                          <th key={heading} className="px-4 py-3 text-left font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                            {heading}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selected.items.map((item) => (
+                        <tr key={item.id} className="border-b border-foreground/8 last:border-none">
+                          <td className="px-4 py-4">{item.label}</td>
+                          <td className="px-4 py-4 font-semibold">{formatBudgetCurrency(item.amount)}</td>
+                          <td className="px-4 py-4">{item.purchaseDate || selected.date}</td>
+                          <td className="px-4 py-4">{item.paymentMethod || selected.paymentMethod}</td>
+                          <td className="px-4 py-4">{item.expenseId || item.id}</td>
+                          <td className="px-4 py-4">{item.vendorName || selected.vendor}</td>
+                          <td className="px-4 py-4">{item.notes || "--"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </BudgetWorkspaceShell>
   );
 };
