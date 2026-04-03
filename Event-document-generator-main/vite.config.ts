@@ -19,4 +19,37 @@ export default defineConfig(({ mode }) => ({
     },
     dedupe: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime", "@tanstack/react-query", "@tanstack/query-core"],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) {
+            return;
+          }
+
+          if (id.includes("recharts")) {
+            return "charts";
+          }
+
+          if (id.includes("@supabase")) {
+            return "supabase";
+          }
+
+          if (id.includes("framer-motion")) {
+            return "motion";
+          }
+
+          if (id.includes("@radix-ui")) {
+            return "radix";
+          }
+
+          if (id.includes("react-router") || id.includes("@tanstack")) {
+            return "routing-data";
+          }
+
+          return "vendor";
+        },
+      },
+    },
+  },
 }));

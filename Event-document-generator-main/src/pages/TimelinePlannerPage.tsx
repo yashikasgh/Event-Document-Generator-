@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, CalendarRange, LoaderCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 
 const TimelinePlannerPage = () => {
@@ -30,10 +31,10 @@ const TimelinePlannerPage = () => {
     <div className="min-h-screen p-6 md:p-10">
       <motion.header className="mb-8 flex items-center justify-between" initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
         <div className="flex items-center gap-4">
-          <a href="/dashboard" className="brutal-btn-outline flex items-center gap-1 px-3 py-2 text-xs">
+          <Link to="/dashboard" className="brutal-btn-outline flex items-center gap-1 px-3 py-2 text-xs">
             <ArrowLeft className="h-4 w-4" strokeWidth={3} />
             Back
-          </a>
+          </Link>
           <h1 className="text-xl font-bold uppercase tracking-tight">Activity Timelines</h1>
         </div>
         <button onClick={generateTimeline} className="brutal-btn-primary flex items-center gap-2 py-2" disabled={isLoading}>

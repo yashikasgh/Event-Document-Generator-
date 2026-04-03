@@ -15,6 +15,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 type DocType = "proposal" | "flyer" | "attendance" | "report";
 
@@ -141,10 +142,10 @@ const EventsPage = () => {
         animate={{ y: 0, opacity: 1 }}
       >
         <div className="flex items-center gap-4">
-          <a href="/dashboard" className="brutal-btn-outline py-2 px-3 flex items-center gap-1 text-xs">
+          <Link to="/dashboard" className="brutal-btn-outline py-2 px-3 flex items-center gap-1 text-xs">
             <ArrowLeft className="w-4 h-4" strokeWidth={3} />
             Back
-          </a>
+          </Link>
           <h1 className="text-xl font-bold uppercase tracking-tight">Events</h1>
         </div>
         <button

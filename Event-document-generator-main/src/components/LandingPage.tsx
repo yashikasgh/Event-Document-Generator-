@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
@@ -11,6 +11,9 @@ import {
   CalendarRange,
   FileBarChart,
 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/AuthProvider";
+import { supabase } from "@/lib/supabase";
 
 type Phase = "intro" | "printer" | "form";
 
@@ -263,8 +266,65 @@ const PrinterAnimation = ({ onComplete }: { onComplete: () => void }) => {
   );
 };
 
-const SignUpForm = () => {
+const SignUpForm = ({ onBackToIntro }: { onBackToIntro: () => void }) => {
   const reduceMotion = useReducedMotion();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [mode, setMode] = useState<"signup" | "signin">("signup");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [status, setStatus] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [navigate, user]);
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    setStatus("");
+
+    if (!email || !password || (mode === "signup" && !fullName)) {
+      setSubmitting(false);
+      setStatus("Please fill all required fields.");
+      return;
+    }
+
+    if (mode === "signup") {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
+      });
+
+      setSubmitting(false);
+      setStatus(error ? error.message : "Account created. Check your email if confirmation is enabled, then sign in.");
+      if (!error) {
+        setMode("signin");
+      }
+      return;
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setSubmitting(false);
+    if (error) {
+      setStatus(error.message);
+      return;
+    }
+
+    navigate("/dashboard");
+  };
 
   return (
     <motion.div
@@ -281,35 +341,60 @@ const SignUpForm = () => {
           transition={{ delay: reduceMotion ? 0 : 0.08, duration: reduceMotion ? 0.12 : 0.35 }}
         >
           <div>
-            <h1 className="text-3xl font-bold uppercase tracking-tight">Get Started</h1>
-            <p className="mt-1 font-mono text-sm text-muted-foreground">Create documents that demand attention.</p>
+            <div className="mb-4 inline-flex rounded-none brutal-border overflow-hidden">
+              <button
+                onClick={() => setMode("signup")}
+                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider ${mode === "signup" ? "bg-primary text-primary-foreground" : "bg-card text-foreground"}`}
+              >
+                Sign Up
+              </button>
+              <button
+                onClick={() => setMode("signin")}
+                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider ${mode === "signin" ? "bg-secondary text-secondary-foreground" : "bg-card text-foreground"}`}
+              >
+                Sign In
+              </button>
+            </div>
+            <h1 className="text-3xl font-bold uppercase tracking-tight">{mode === "signup" ? "Create Account" : "Welcome Back"}</h1>
+            <p className="mt-1 font-mono text-sm text-muted-foreground">
+              {mode === "signup" ? "Create documents that demand attention." : "Access your event workspace and continue where you left off."}
+            </p>
           </div>
 
           <div className="space-y-4">
-            <div>
-              <label className="mb-2 block text-sm font-bold uppercase tracking-wider">Full Name</label>
-              <input type="text" placeholder="Jane Doe" className="brutal-input" />
-            </div>
+            {mode === "signup" ? (
+              <div>
+                <label className="mb-2 block text-sm font-bold uppercase tracking-wider">Full Name</label>
+                <input type="text" placeholder="Jane Doe" className="brutal-input" value={fullName} onChange={(event) => setFullName(event.target.value)} />
+              </div>
+            ) : null}
             <div>
               <label className="mb-2 block text-sm font-bold uppercase tracking-wider">Email</label>
-              <input type="email" placeholder="jane@school.edu" className="brutal-input" />
+              <input type="email" placeholder="jane@school.edu" className="brutal-input" value={email} onChange={(event) => setEmail(event.target.value)} />
             </div>
             <div>
               <label className="mb-2 block text-sm font-bold uppercase tracking-wider">Password</label>
-              <input type="password" placeholder="Create a secure password" className="brutal-input" />
+              <input type="password" placeholder="Create a secure password" className="brutal-input" value={password} onChange={(event) => setPassword(event.target.value)} />
             </div>
           </div>
 
           <div className="space-y-3">
-            <a href="/dashboard" className="brutal-btn-primary block w-full text-center">
-              Create Account
-            </a>
+            <button onClick={handleSubmit} className="brutal-btn-primary block w-full text-center" disabled={submitting}>
+              {submitting ? "Processing..." : mode === "signup" ? "Create Account" : "Sign In"}
+            </button>
             <p className="text-center text-sm font-mono text-muted-foreground">
-              Already have an account?{" "}
-              <a href="/dashboard" className="font-bold text-primary underline decoration-2 underline-offset-4">
-                Sign in
-              </a>
+              {mode === "signup" ? "Already have an account?" : "Need a new account?"}{" "}
+              <button
+                onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
+                className="font-bold text-primary underline decoration-2 underline-offset-4"
+              >
+                {mode === "signup" ? "Sign in" : "Create one"}
+              </button>
             </p>
+            {status ? <p className="text-center font-mono text-xs text-muted-foreground">{status}</p> : null}
+            <button onClick={onBackToIntro} className="block w-full text-center font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground underline underline-offset-4">
+              Back to intro
+            </button>
           </div>
         </motion.div>
 
@@ -335,7 +420,7 @@ const LandingPage = () => {
       ) : phase === "printer" ? (
         <PrinterAnimation key="printer" onComplete={() => window.setTimeout(() => setPhase("form"), reduceMotion ? 160 : 500)} />
       ) : (
-        <SignUpForm key="form" />
+        <SignUpForm key="form" onBackToIntro={() => setPhase("intro")} />
       )}
     </AnimatePresence>
   );

@@ -4,6 +4,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/components/AuthProvider";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const Index = lazy(() => import("./pages/Index.tsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
@@ -15,33 +17,107 @@ const EventsPage = lazy(() => import("./pages/EventsPage.tsx"));
 const BudgetPlannerPage = lazy(() => import("./pages/BudgetPlannerPage.tsx"));
 const TimelinePlannerPage = lazy(() => import("./pages/TimelinePlannerPage.tsx"));
 const PostEventSummaryPage = lazy(() => import("./pages/PostEventSummaryPage.tsx"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Suspense fallback={<div className="flex min-h-screen items-center justify-center font-mono text-sm text-muted-foreground">Loading...</div>}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/generate/proposal" element={<ProposalGenerator />} />
-            <Route path="/generate/flyer" element={<FlyerGenerator />} />
-            <Route path="/generate/attendance" element={<AttendancePage />} />
-            <Route path="/generate/report" element={<ReportGenerator />} />
-            <Route path="/generate/budget" element={<BudgetPlannerPage />} />
-            <Route path="/generate/timeline" element={<TimelinePlannerPage />} />
-            <Route path="/generate/summary" element={<PostEventSummaryPage />} />
-            <Route path="/events" element={<EventsPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Suspense fallback={<div className="flex min-h-screen items-center justify-center font-mono text-sm text-muted-foreground">Loading...</div>}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <ProfilePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/generate/proposal"
+                element={
+                  <ProtectedRoute>
+                    <ProposalGenerator />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/generate/flyer"
+                element={
+                  <ProtectedRoute>
+                    <FlyerGenerator />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/generate/attendance"
+                element={
+                  <ProtectedRoute>
+                    <AttendancePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/generate/report"
+                element={
+                  <ProtectedRoute>
+                    <ReportGenerator />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/generate/budget"
+                element={
+                  <ProtectedRoute>
+                    <BudgetPlannerPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/generate/timeline"
+                element={
+                  <ProtectedRoute>
+                    <TimelinePlannerPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/generate/summary"
+                element={
+                  <ProtectedRoute>
+                    <PostEventSummaryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/events"
+                element={
+                  <ProtectedRoute>
+                    <EventsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
