@@ -627,19 +627,7 @@ export const buildBudgetSheetPdf = async ({
     }
 
     await ensureSpace(66);
-    const totalsBoxX = LANDSCAPE_PAGE.width - LANDSCAPE_PAGE.margin - 248;
-    const totalsBoxY = y - 60;
-    const totalsBoxWidth = 208;
-    const totalsBoxHeight = 74;
-    page.drawRectangle({
-      x: totalsBoxX,
-      y: totalsBoxY,
-      width: totalsBoxWidth,
-      height: totalsBoxHeight,
-      color: rgb(0.985, 0.985, 0.99),
-      borderWidth: 0.6,
-      borderColor: rgb(0.86, 0.86, 0.9),
-    });
+    const totalsX = LANDSCAPE_PAGE.width - LANDSCAPE_PAGE.margin - 220;
     const totalRows = [
       ["Subtotal", formatCurrency(record.subtotal || 0)],
       ["Tax Total", formatCurrency(record.taxTotal || 0)],
@@ -648,16 +636,16 @@ export const buildBudgetSheetPdf = async ({
     ];
     totalRows.forEach(([label, value], index) => {
       const isGrand = index === totalRows.length - 1;
-      const rowY = y - 10 - index * 16;
+      const rowY = y - index * 18;
       page.drawText(label, {
-        x: totalsBoxX + 12,
+        x: totalsX,
         y: rowY,
         size: isGrand ? 9.4 : 8.8,
         font: isGrand ? bold : font,
         color: rgb(0.18, 0.18, 0.2),
       });
       page.drawText(value, {
-        x: totalsBoxX + totalsBoxWidth - 12 - bold.widthOfTextAtSize(value, isGrand ? 9.4 : 8.8),
+        x: LANDSCAPE_PAGE.width - LANDSCAPE_PAGE.margin - 8 - bold.widthOfTextAtSize(value, isGrand ? 9.4 : 8.8),
         y: rowY,
         size: isGrand ? 9.4 : 8.8,
         font: isGrand ? bold : font,
