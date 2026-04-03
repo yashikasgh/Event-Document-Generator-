@@ -15,6 +15,7 @@ const AttendancePage = lazy(() => import("./pages/AttendancePage.tsx"));
 const ReportGenerator = lazy(() => import("./pages/ReportGenerator.tsx"));
 const EventsPage = lazy(() => import("./pages/EventsPage.tsx"));
 const BudgetPlannerPage = lazy(() => import("./pages/BudgetPlannerPage.tsx"));
+const PreviousBudgetsPage = lazy(() => import("./pages/PreviousBudgetsPage.tsx"));
 const TimelinePlannerPage = lazy(() => import("./pages/TimelinePlannerPage.tsx"));
 const PostEventSummaryPage = lazy(() => import("./pages/PostEventSummaryPage.tsx"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage.tsx"));
@@ -85,6 +86,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <BudgetPlannerPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/generate/budget/history"
+                element={
+                  <ProtectedRoute>
+                    <PreviousBudgetsPage />
                   </ProtectedRoute>
                 }
               />
