@@ -27,7 +27,9 @@ app.post("/api/documents/proposal", async (req, res, next) => {
   try {
     const result = await generateProposalDocument(req.body);
     res.json({
-      ...result,
+      fileName: result.fileName,
+      summary: result.summary,
+      narrative: result.narrative,
       pdfBase64: bufferToBase64(result.pdfBuffer),
     });
   } catch (error) {
@@ -39,7 +41,8 @@ app.post("/api/documents/report", async (req, res, next) => {
   try {
     const result = await generateReportDocument(req.body);
     res.json({
-      ...result,
+      fileName: result.fileName,
+      summary: result.summary,
       pdfBase64: bufferToBase64(result.pdfBuffer),
     });
   } catch (error) {

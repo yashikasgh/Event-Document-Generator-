@@ -49,6 +49,7 @@ export const generateProposalDocument = async (payload) => {
       estimatedBudget: payload.budget ? formatCurrency(payload.budget) : null,
       narrativeSource: proposalNarrative.source,
     },
+    narrative: proposalNarrative.paragraphs,
     pdfBuffer,
   };
 };

@@ -26,7 +26,11 @@ async function requestJson<T>(path: string, options: JsonOptions = {}): Promise<
 
 export const api = {
   health: () => requestJson<{ ok: boolean; service: string; date: string }>("/health"),
-  generateProposal: (body: unknown) => requestJson<{ fileName: string; pdfBase64: string; summary: Record<string, unknown> }>("/documents/proposal", { method: "POST", body }),
+  generateProposal: (body: unknown) =>
+    requestJson<{ fileName: string; pdfBase64: string; summary: Record<string, unknown>; narrative: string[] }>("/documents/proposal", {
+      method: "POST",
+      body,
+    }),
   generateReport: (body: unknown) => requestJson<{ fileName: string; pdfBase64: string; summary: Record<string, unknown> }>("/documents/report", { method: "POST", body }),
   generateFlyer: (body: unknown) =>
     requestJson<{ prompt: string; provider: string; status: string; message?: string; creativeBrief?: string; imageBase64?: string | null }>("/flyers/generate", {
@@ -66,4 +70,10 @@ export const downloadBase64Pdf = (base64: string, fileName: string) => {
   anchor.download = fileName;
   anchor.click();
   URL.revokeObjectURL(url);
+};
+
+export const base64PdfToObjectUrl = (base64: string) => {
+  const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+  const blob = new Blob([bytes], { type: "application/pdf" });
+  return URL.createObjectURL(blob);
 };

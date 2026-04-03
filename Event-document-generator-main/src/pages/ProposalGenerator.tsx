@@ -1,9 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ChevronDown, Download, FileText, LoaderCircle } from "lucide-react";
+import { ArrowLeft, ChevronDown, Download, FileText, LoaderCircle, Plus, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { api, downloadBase64Pdf } from "@/lib/api";
+import { api, base64PdfToObjectUrl, downloadBase64Pdf } from "@/lib/api";
 import { CLUBS, COLLEGE_BRAND, getClubById } from "@/lib/clubs";
+
+type Signatory = {
+  id: string;
+  name: string;
+  designation: string;
+};
 
 interface ProposalData {
   collegeName: string;
@@ -20,8 +26,6 @@ interface ProposalData {
   objective: string;
   eventSummary: string;
   keyPoints: string;
-  facultyName: string;
-  facultyDesignation: string;
 }
 
 const initialState: ProposalData = {
@@ -39,8 +43,6 @@ const initialState: ProposalData = {
   objective: "",
   eventSummary: "",
   keyPoints: "",
-  facultyName: "",
-  facultyDesignation: "",
 };
 
 const LogoBadge = ({
@@ -95,17 +97,47 @@ const assetUrlToDataUrl = async (assetPath?: string) => {
   }
 };
 
+const createSignatory = (): Signatory => ({
+  id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  name: "",
+  designation: "",
+});
+
 const ProposalGenerator = () => {
   const [data, setData] = useState<ProposalData>(initialState);
+  const [signatories, setSignatories] = useState<Signatory[]>([createSignatory()]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedFile, setGeneratedFile] = useState<{ fileName: string; pdfBase64: string } | null>(null);
+  const [generatedFile, setGeneratedFile] = useState<{ fileName: string; pdfBase64: string; narrative: string[] } | null>(null);
+  const [pdfUrl, setPdfUrl] = useState("");
   const [status, setStatus] = useState("");
   const [clubMenuOpen, setClubMenuOpen] = useState(false);
 
   const selectedClub = useMemo(() => getClubById(data.clubId), [data.clubId]);
 
+  useEffect(() => {
+    return () => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+    };
+  }, [pdfUrl]);
+
   const update = (field: keyof ProposalData, value: string) => {
     setData((previous) => ({ ...previous, [field]: value }));
+  };
+
+  const updateSignatory = (id: string, key: keyof Omit<Signatory, "id">, value: string) => {
+    setSignatories((previous) =>
+      previous.map((item) => (item.id === id ? { ...item, [key]: value } : item))
+    );
+  };
+
+  const addSignatory = () => {
+    setSignatories((previous) => [...previous, createSignatory()]);
+  };
+
+  const removeSignatory = (id: string) => {
+    setSignatories((previous) => (previous.length === 1 ? previous : previous.filter((item) => item.id !== id)));
   };
 
   const generateProposal = async () => {
@@ -130,15 +162,17 @@ const ProposalGenerator = () => {
           .split("\n")
           .map((item) => item.trim())
           .filter(Boolean),
-        signatories: [
-          {
-            name: data.facultyName,
-            designation: data.facultyDesignation,
-          },
-        ].filter((item) => item.name || item.designation),
+        signatories: signatories.filter((item) => item.name || item.designation),
       });
+
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+      }
+
+      const nextPdfUrl = base64PdfToObjectUrl(response.pdfBase64);
+      setPdfUrl(nextPdfUrl);
       setGeneratedFile(response);
-      setStatus("Proposal PDF generated successfully.");
+      setStatus("Proposal PDF generated successfully. You can preview and download it below.");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Failed to generate proposal.");
     } finally {
@@ -169,7 +203,7 @@ const ProposalGenerator = () => {
           </Link>
           <div>
             <h1 className="text-xl font-bold uppercase tracking-tight">Proposal Generator</h1>
-            <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">End-to-end branded proposal flow</p>
+            <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">AI-generated narrative with formatted PDF output</p>
           </div>
         </div>
         <div className="flex gap-3">
@@ -293,22 +327,31 @@ const ProposalGenerator = () => {
             <textarea className="brutal-input min-h-[100px] resize-y" placeholder={"One point per line\nExpected outcomes\nRequired approvals"} value={data.keyPoints} onChange={(event) => update("keyPoints", event.target.value)} />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider">Faculty Name for Signature</label>
-              <input className="brutal-input" placeholder="Dr. A. B. Faculty" value={data.facultyName} onChange={(event) => update("facultyName", event.target.value)} />
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold uppercase tracking-wider">Faculty Signatures</label>
+              <button type="button" onClick={addSignatory} className="brutal-btn-outline flex items-center gap-2 px-3 py-2 text-xs">
+                <Plus className="h-3.5 w-3.5" strokeWidth={3} />
+                Add Faculty
+              </button>
             </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider">Faculty Designation</label>
-              <input className="brutal-input" placeholder="Faculty Coordinator" value={data.facultyDesignation} onChange={(event) => update("facultyDesignation", event.target.value)} />
-            </div>
+
+            {signatories.map((signatory, index) => (
+              <div key={signatory.id} className="grid grid-cols-1 gap-3 rounded-none bg-muted/15 p-3 brutal-border md:grid-cols-[1fr_1fr_auto]">
+                <input className="brutal-input" placeholder={`Faculty ${index + 1} Name`} value={signatory.name} onChange={(event) => updateSignatory(signatory.id, "name", event.target.value)} />
+                <input className="brutal-input" placeholder="Designation" value={signatory.designation} onChange={(event) => updateSignatory(signatory.id, "designation", event.target.value)} />
+                <button type="button" onClick={() => removeSignatory(signatory.id)} className="brutal-btn-outline flex items-center justify-center px-3 py-2 text-xs">
+                  <Trash2 className="h-4 w-4" strokeWidth={2.5} />
+                </button>
+              </div>
+            ))}
           </div>
 
           {status ? <p className="font-mono text-xs text-muted-foreground">{status}</p> : null}
         </motion.div>
 
-        <motion.div className="sticky top-6" initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
-          <div className="brutal-card min-h-[760px]">
+        <motion.div className="space-y-6" initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
+          <div className="brutal-card">
             <div className="flex items-start justify-between gap-4 border-b-2 border-foreground pb-5">
               <LogoBadge label={data.collegeAcronym || "PCE"} hex={COLLEGE_BRAND.hex} logoPath={COLLEGE_BRAND.logoPath} />
               <div className="flex-1 text-center">
@@ -339,46 +382,57 @@ const ProposalGenerator = () => {
               </div>
 
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider">Body Preview</p>
+                <p className="text-xs font-bold uppercase tracking-wider">Generated Proposal Body</p>
                 <div className="mt-3 space-y-4 text-sm leading-7 text-muted-foreground">
-                  <p>
-                    This proposal is submitted on behalf of {selectedClub.name} for the event{" "}
-                    <span className="font-bold text-foreground">{data.eventTitle || "Event Title"}</span>.
-                  </p>
-                  <p>
-                    The event is proposed for {data.eventDate || "the selected date"} at {data.venue || "the proposed venue"} for {data.targetAudience || "the target audience"}.
-                  </p>
-                  <p>
-                    The core objective is to {data.objective || "describe the objective clearly"}.
-                  </p>
-                  <p className="whitespace-pre-wrap">
-                    {data.eventSummary || "Add the event summary here so the formal proposal body can be generated properly."}
-                  </p>
+                  {generatedFile?.narrative?.length ? (
+                    generatedFile.narrative.map((paragraph) => <p key={paragraph}>{paragraph}</p>)
+                  ) : (
+                    <p>Generate the proposal to see AI-written paragraph content based on your objective, event summary, and key points.</p>
+                  )}
                 </div>
               </div>
 
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider">Key Points</p>
-                <div className="mt-2 space-y-2 text-sm text-muted-foreground">
-                  {keyPoints.length > 0 ? keyPoints.map((point) => <p key={point}>- {point}</p>) : <p>Add the main approvals, logistics, or outcomes one per line.</p>}
+                <p className="text-xs font-bold uppercase tracking-wider">Submitted Signatories</p>
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  {signatories.filter((item) => item.name || item.designation).length > 0 ? (
+                    signatories
+                      .filter((item) => item.name || item.designation)
+                      .map((item) => (
+                        <div key={item.id} className="border-t border-foreground/30 pt-4 text-sm">
+                          <p className="font-bold">{item.name || "Faculty Name"}</p>
+                          <p className="text-muted-foreground">{item.designation || "Designation"}</p>
+                        </div>
+                      ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Add one or more faculty names and designations to include signature blocks in the PDF.</p>
+                  )}
                 </div>
-              </div>
-
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wider">Signature Block</p>
-                <div className="mt-4 flex max-w-xs flex-col gap-1 border-t border-foreground/30 pt-4 text-sm">
-                  <span className="font-bold">{data.facultyName || "Faculty Name"}</span>
-                  <span className="text-muted-foreground">{data.facultyDesignation || "Designation"}</span>
-                </div>
-              </div>
-
-              <div className="rounded-[18px] bg-background p-4 brutal-border">
-                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Branding note</p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Add the official image files at `public/logos/college/pce.png` and `public/logos/clubs/*.png`. The page and generated PDF will automatically use those logos; until then, the branded fallback badge is shown.
-                </p>
               </div>
             </div>
+          </div>
+
+          <div className="brutal-card">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <div>
+                <p className="font-mono text-xs uppercase tracking-[0.25em] text-muted-foreground">Formatted PDF Preview</p>
+                <p className="mt-1 text-sm text-muted-foreground">This is the actual generated PDF output, not a mock preview.</p>
+              </div>
+              {generatedFile ? (
+                <button onClick={handleDownload} className="brutal-btn-secondary flex items-center gap-2 py-2 text-xs">
+                  <Download className="h-4 w-4" strokeWidth={3} />
+                  Download PDF
+                </button>
+              ) : null}
+            </div>
+
+            {pdfUrl ? (
+              <iframe title="Proposal PDF Preview" src={pdfUrl} className="h-[720px] w-full brutal-border bg-white" />
+            ) : (
+              <div className="flex min-h-[240px] items-center justify-center brutal-border bg-muted/10 p-6 text-center text-sm text-muted-foreground">
+                Generate the proposal first. The formatted PDF will appear here and will also be downloadable.
+              </div>
+            )}
           </div>
         </motion.div>
       </div>
