@@ -25,21 +25,13 @@ const flattenRows = (records: StoredBudgetRecord[]) =>
     }))
   );
 
-export const exportBudgetExcel = async (records: StoredBudgetRecord[]) => {
-  const XLSX = await import("xlsx");
-  const workbook = XLSX.utils.book_new();
-  const sheet = XLSX.utils.json_to_sheet(flattenRows(records));
-  XLSX.utils.book_append_sheet(workbook, sheet, "Budget Report");
-  XLSX.writeFile(workbook, `budget-report-${format(new Date(), "yyyy-MM-dd")}.xlsx`);
-};
-
-export const exportBudgetPdf = async (records: StoredBudgetRecord[]) => {
+export const createBudgetPdfObjectUrl = async (records: StoredBudgetRecord[]) => {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const pdf = await PDFDocument.create();
   const page = pdf.addPage([842, 595]);
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const { width, height } = page.getSize();
+  const { height } = page.getSize();
 
   page.drawText("College Budget Report", { x: 42, y: height - 42, size: 24, font: bold, color: rgb(0.09, 0.09, 0.1) });
   page.drawText(`Generated ${format(new Date(), "dd MMM yyyy, hh:mm a")}`, { x: 42, y: height - 62, size: 10, font, color: rgb(0.4, 0.42, 0.45) });
@@ -56,5 +48,21 @@ export const exportBudgetPdf = async (records: StoredBudgetRecord[]) => {
   });
 
   const bytes = await pdf.save();
-  downloadBlob(new Blob([bytes], { type: "application/pdf" }), `budget-report-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+  return URL.createObjectURL(new Blob([bytes], { type: "application/pdf" }));
+};
+
+export const exportBudgetExcel = async (records: StoredBudgetRecord[]) => {
+  const XLSX = await import("xlsx");
+  const workbook = XLSX.utils.book_new();
+  const sheet = XLSX.utils.json_to_sheet(flattenRows(records));
+  XLSX.utils.book_append_sheet(workbook, sheet, "Budget Report");
+  XLSX.writeFile(workbook, `budget-report-${format(new Date(), "yyyy-MM-dd")}.xlsx`);
+};
+
+export const exportBudgetPdf = async (records: StoredBudgetRecord[]) => {
+  const url = await createBudgetPdfObjectUrl(records);
+  const response = await fetch(url);
+  const blob = await response.blob();
+  downloadBlob(blob, `budget-report-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+  URL.revokeObjectURL(url);
 };

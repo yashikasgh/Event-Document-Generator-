@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, FolderKanban, IndianRupee, Search } from "lucide-react";
+import { CalendarDays, Edit3, FolderKanban, IndianRupee, Search, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import BudgetWorkspaceShell from "@/components/BudgetWorkspaceShell";
 import {
   Dialog,
@@ -9,9 +11,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StoredBudgetRecord, formatBudgetCurrency, loadBudgetCategories, loadBudgetRecords } from "@/lib/budgetStorage";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { StoredBudgetRecord, formatBudgetCurrency, loadBudgetCategories, loadBudgetRecords, saveBudgetRecords } from "@/lib/budgetStorage";
 
 const PreviousBudgetsPage = () => {
+  const navigate = useNavigate();
   const [records, setRecords] = useState<StoredBudgetRecord[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedRecordId, setSelectedRecordId] = useState("");
@@ -21,6 +34,8 @@ const PreviousBudgetsPage = () => {
   const [dateFilter, setDateFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [pendingDeleteRecordId, setPendingDeleteRecordId] = useState("");
+  const [pendingDeleteExpenseId, setPendingDeleteExpenseId] = useState("");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -49,6 +64,31 @@ const PreviousBudgetsPage = () => {
   );
 
   const selected = filtered.find((record) => record.id === selectedRecordId) || filtered[0];
+
+  const removeRecord = (recordId: string) => {
+    const updated = records.filter((record) => record.id !== recordId);
+    setRecords(updated);
+    saveBudgetRecords(updated);
+    setSelectedRecordId(updated[0]?.id || "");
+    setPendingDeleteRecordId("");
+    setIsDetailsOpen(false);
+    toast.success("Budget folder deleted.");
+  };
+
+  const removeExpense = (recordId: string, expenseId: string) => {
+    const updated = records.map((record) =>
+      record.id !== recordId
+        ? record
+        : {
+            ...record,
+            items: record.items.filter((item) => item.id !== expenseId),
+          }
+    );
+    setRecords(updated);
+    saveBudgetRecords(updated);
+    setPendingDeleteExpenseId("");
+    toast.success("Expense deleted from folder.");
+  };
 
   if (loading) {
     return (
@@ -126,9 +166,19 @@ const PreviousBudgetsPage = () => {
                 </div>
                 <div className="flex flex-col items-start gap-3 text-sm text-muted-foreground md:items-end">
                   <span>{selected.vendor}</span>
-                  <button onClick={() => setIsDetailsOpen(true)} className="brutal-btn-outline px-4 py-2 text-xs">
-                    Open Detailed View
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    <button onClick={() => navigate(`/generate/budget/create?draft=${selected.id}`)} className="brutal-btn-outline flex items-center gap-2 px-4 py-2 text-xs">
+                      <Edit3 className="h-3.5 w-3.5" strokeWidth={2.3} />
+                      Edit
+                    </button>
+                    <button onClick={() => setPendingDeleteRecordId(selected.id)} className="brutal-btn-outline flex items-center gap-2 px-4 py-2 text-xs text-destructive">
+                      <Trash2 className="h-3.5 w-3.5" strokeWidth={2.3} />
+                      Delete
+                    </button>
+                    <button onClick={() => setIsDetailsOpen(true)} className="brutal-btn-outline px-4 py-2 text-xs">
+                      Open Detailed View
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -149,12 +199,12 @@ const PreviousBudgetsPage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {selected.items.map((item) => (
-                        <tr key={item.id} className="border-b border-foreground/8 last:border-none">
-                          <td className="px-4 py-4">{item.label}</td>
-                          <td className="px-4 py-4 font-semibold">{formatBudgetCurrency(item.amount)}</td>
-                          <td className="px-4 py-4">{item.purchaseDate || selected.date}</td>
-                          <td className="px-4 py-4">{item.paymentMethod || selected.paymentMethod}</td>
+                    {selected.items.map((item) => (
+                      <tr key={item.id} className="border-b border-foreground/8 last:border-none">
+                        <td className="px-4 py-4">{item.label}</td>
+                        <td className="px-4 py-4 font-semibold">{formatBudgetCurrency(item.amount)}</td>
+                        <td className="px-4 py-4">{item.purchaseDate || selected.date}</td>
+                        <td className="px-4 py-4">{item.paymentMethod || selected.paymentMethod}</td>
                           <td className="px-4 py-4">{item.expenseId || item.id}</td>
                         </tr>
                       ))}
@@ -187,7 +237,7 @@ const PreviousBudgetsPage = () => {
                   <table className="w-full min-w-[920px] text-sm">
                     <thead>
                       <tr className="border-b border-foreground/10">
-                        {["Expense Title", "Amount", "Date", "Payment Method", "Expense ID", "Vendor", "Notes"].map((heading) => (
+                        {["Expense Title", "Amount", "Date", "Payment Method", "Expense ID", "Vendor", "Notes", "Action"].map((heading) => (
                           <th key={heading} className="px-4 py-3 text-left font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                             {heading}
                           </th>
@@ -204,6 +254,11 @@ const PreviousBudgetsPage = () => {
                           <td className="px-4 py-4">{item.expenseId || item.id}</td>
                           <td className="px-4 py-4">{item.vendorName || selected.vendor}</td>
                           <td className="px-4 py-4">{item.notes || "--"}</td>
+                          <td className="px-4 py-4">
+                            <button onClick={() => setPendingDeleteExpenseId(item.id)} className="brutal-btn-outline px-3 py-2 text-xs text-destructive">
+                              Delete
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -214,6 +269,32 @@ const PreviousBudgetsPage = () => {
           ) : null}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!pendingDeleteRecordId} onOpenChange={(open) => !open && setPendingDeleteRecordId("")}>
+        <AlertDialogContent className="rounded-[24px] border-2 border-foreground">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this budget folder?</AlertDialogTitle>
+            <AlertDialogDescription>This will remove the selected budget history entry and all expenses inside it.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => removeRecord(pendingDeleteRecordId)}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!pendingDeleteExpenseId} onOpenChange={(open) => !open && setPendingDeleteExpenseId("")}>
+        <AlertDialogContent className="rounded-[24px] border-2 border-foreground">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this expense?</AlertDialogTitle>
+            <AlertDialogDescription>This will remove the expense from the selected folder history.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => selected && removeExpense(selected.id, pendingDeleteExpenseId)}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </BudgetWorkspaceShell>
   );
 };

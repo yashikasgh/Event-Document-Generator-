@@ -62,8 +62,32 @@ export const api = {
       body,
     }),
   analyzeBudget: (body: unknown) => requestJson<Record<string, unknown>>("/budget/analyze", { method: "POST", body }),
+  analyzeBudgetFolder: (body: unknown) => requestJson<Record<string, unknown>>("/budget/analyze-folder", { method: "POST", body }),
+  estimateBudget: (body: unknown) => requestJson<Record<string, unknown>>("/budget/estimate", { method: "POST", body }),
   generateTimeline: (body: unknown) => requestJson<{ timeline: Array<Record<string, unknown>> }>("/timelines/generate", { method: "POST", body }),
   compileSummary: (body: unknown) => requestJson<Record<string, unknown>>("/post-event/summary", { method: "POST", body }),
+  analyzeBudgetCsv: async (file: File, folder: unknown) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("folder", JSON.stringify(folder));
+
+    let response: Response;
+    try {
+      response = await fetchWithFallback("/budget/analyze-csv", {
+        method: "POST",
+        body: formData,
+      });
+    } catch {
+      throw new Error("Backend not reachable. Start the API server and try again.");
+    }
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({}));
+      throw new Error(payload.message || "CSV analysis failed");
+    }
+
+    return response.json() as Promise<Record<string, unknown>>;
+  },
   parseAttendance: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);

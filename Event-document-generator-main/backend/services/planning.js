@@ -1,3 +1,5 @@
+import * as XLSX from "xlsx";
+import { generateBudgetAnalysisNarrative, generateBudgetEstimateNarrative } from "./ai.js";
 import { formatCurrency, formatPercent, safeArray } from "../utils.js";
 
 const CATEGORY_BASELINES = {
@@ -164,5 +166,60 @@ export const compilePostEventSummary = (payload) => {
         ? "Focus on session pacing, signage, and volunteer response time in the next run."
         : "Maintain the current event structure and collect more qualitative testimonials for promotion.",
     ],
+  };
+};
+
+export const analyzeBudgetFolder = async (payload) => {
+  const folder = payload.folder || {};
+  const narrative = await generateBudgetAnalysisNarrative({
+    ...folder,
+    csvSummary: payload.csvSummary || "",
+  });
+
+  return {
+    folderId: folder.id || "",
+    title: folder.title || "Untitled folder",
+    category: folder.category || "General",
+    summary: narrative.summary,
+    insights: narrative.insights,
+    recommendation: narrative.recommendation,
+    source: narrative.source,
+  };
+};
+
+export const parseBudgetCsv = (buffer, originalname = "upload.csv") => {
+  const workbook = XLSX.read(buffer, { type: "buffer" });
+  const sheetName = workbook.SheetNames[0];
+  const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
+  const previewRows = rows.slice(0, 25);
+
+  return {
+    fileName: originalname,
+    rowsParsed: rows.length,
+    rows: previewRows,
+    summaryText: previewRows
+      .map((row, index) => `${index + 1}. ${Object.entries(row).map(([key, value]) => `${key}: ${String(value)}`).join(", ")}`)
+      .join("\n"),
+  };
+};
+
+export const estimateBudgetFromHistory = async (payload) => {
+  const result = await generateBudgetEstimateNarrative({
+    eventType: payload.eventType || "General",
+    attendees: Number(payload.attendees || 0),
+    history: safeArray(payload.history),
+  });
+
+  return {
+    source: result.source,
+    summary: result.summary,
+    estimatedTotal: result.estimatedTotal,
+    estimatedTotalFormatted: formatCurrency(result.estimatedTotal),
+    breakdown: Object.entries(result.breakdown).map(([label, amount]) => ({
+      label,
+      amount,
+      amountFormatted: formatCurrency(amount),
+    })),
+    recommendations: result.recommendations,
   };
 };

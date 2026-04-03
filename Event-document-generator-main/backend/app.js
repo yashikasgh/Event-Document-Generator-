@@ -4,7 +4,7 @@ import multer from "multer";
 import { config } from "./config.js";
 import { bufferToBase64 } from "./utils.js";
 import { generateProposalDocument, generateReportDocument } from "./services/documents.js";
-import { analyzeBudget, buildTimeline, compilePostEventSummary } from "./services/planning.js";
+import { analyzeBudget, analyzeBudgetFolder, buildTimeline, compilePostEventSummary, estimateBudgetFromHistory, parseBudgetCsv } from "./services/planning.js";
 import { parseAttendanceFile, buildAttendancePdf } from "./services/attendance.js";
 import { generateFlyerConcept } from "./services/flyers.js";
 
@@ -80,6 +80,43 @@ app.post("/api/attendance/export", async (req, res, next) => {
 
 app.post("/api/budget/analyze", (req, res) => {
   res.json(analyzeBudget(req.body));
+});
+
+app.post("/api/budget/analyze-folder", async (req, res, next) => {
+  try {
+    res.json(await analyzeBudgetFolder(req.body));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/budget/analyze-csv", upload.single("file"), async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "A CSV or Excel file is required." });
+    }
+
+    const csvData = parseBudgetCsv(req.file.buffer, req.file.originalname);
+    const analysis = await analyzeBudgetFolder({
+      folder: req.body.folder ? JSON.parse(req.body.folder) : {},
+      csvSummary: csvData.summaryText,
+    });
+
+    res.json({
+      ...csvData,
+      analysis,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/budget/estimate", async (req, res, next) => {
+  try {
+    res.json(await estimateBudgetFromHistory(req.body));
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.post("/api/timelines/generate", (req, res) => {
