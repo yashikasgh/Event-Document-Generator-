@@ -37,7 +37,6 @@ const detectColumns = (row = []) => {
   const keys = row.map(normalizeHeaderValue);
   const srNoIndex = keys.findIndex((key) => /(sr\.?\s*no|serial)/i.test(key));
   const admissionIndex = keys.findIndex((key) => /(admission|admn|enroll|enrol)/i.test(key));
-  const seatIndex = keys.findIndex((key) => /seat/i.test(key));
   const nameIndex = keys.findIndex((key) => /name/i.test(key));
   const yearIndex = keys.findIndex((key) => /year/i.test(key));
   const branchIndex = keys.findIndex((key) => /branch|dept|department/i.test(key));
@@ -46,7 +45,6 @@ const detectColumns = (row = []) => {
   return {
     srNoIndex: srNoIndex >= 0 ? srNoIndex : 0,
     admissionIndex: admissionIndex >= 0 ? admissionIndex : 1,
-    seatIndex: seatIndex >= 0 ? seatIndex : 2,
     nameIndex: nameIndex >= 0 ? nameIndex : 3,
     yearIndex,
     branchIndex,
@@ -69,7 +67,6 @@ export const parseAttendanceFile = (fileBuffer, fileName = "students.csv") => {
       const values = Array.isArray(row) ? row : [];
       const srNo = clampText(values[columns.srNoIndex], 20) || String(index + 1);
       const admissionNo = clampText(values[columns.admissionIndex], 60) || "";
-      const seatNo = clampText(values[columns.seatIndex], 60) || "";
       const name = clampText(values[columns.nameIndex], 120) || "";
       const year = columns.yearIndex >= 0 ? clampText(values[columns.yearIndex], 20) : "";
       const branch = columns.branchIndex >= 0 ? clampText(values[columns.branchIndex], 50) : "";
@@ -79,7 +76,6 @@ export const parseAttendanceFile = (fileBuffer, fileName = "students.csv") => {
         id: `${index + 1}`,
         srNo,
         admissionNo,
-        seatNo,
         name,
         roll: admissionNo || `ADM-${index + 1}`,
         year,
@@ -88,12 +84,12 @@ export const parseAttendanceFile = (fileBuffer, fileName = "students.csv") => {
         selected: true,
       };
     })
-    .filter((student) => student.name && (student.admissionNo || student.seatNo || student.srNo));
+    .filter((student) => student.name && (student.admissionNo || student.srNo));
 
   const metadata = {
     sourceFile: fileName,
     rowsParsed: students.length,
-    extractedColumns: ["Sr.No", "Admission No", "Seat No", "Name Of the Student"],
+    extractedColumns: ["Sr.No", "Admission No", "Name Of the Student"],
     years: [...new Set(students.map((student) => student.year).filter(Boolean))],
     branches: [...new Set(students.map((student) => student.branch).filter(Boolean))],
     divisions: [...new Set(students.map((student) => student.division).filter(Boolean))],
@@ -150,10 +146,9 @@ export const buildAttendancePdf = async (payload) => {
 
   const columns = [
     { label: "Sr.No", key: "srNo", width: 48 },
-    { label: "Admission No", key: "admissionNo", width: 86 },
-    { label: "Seat No", key: "seatNo", width: 84 },
-    { label: "Name of Student", key: "name", width: 176 },
-    ...Array.from({ length: 10 }, (_, index) => ({ label: String(index + 1), key: `lecture-${index + 1}`, width: 42 })),
+    { label: "Admission No", key: "admissionNo", width: 96 },
+    { label: "Name of Student", key: "name", width: 260 },
+    ...Array.from({ length: 10 }, (_, index) => ({ label: String(index + 1), key: `lecture-${index + 1}`, width: 36 })),
     { label: "Total Attended", key: "total", width: 76 },
   ];
 
@@ -195,8 +190,6 @@ export const buildAttendancePdf = async (payload) => {
         drawCellText(student.srNo, cellX, y - 12, column.width, regular, 8, true);
       } else if (column.key === "admissionNo") {
         drawCellText(student.admissionNo, cellX, y - 12, column.width, regular, 8, true);
-      } else if (column.key === "seatNo") {
-        drawCellText(student.seatNo, cellX, y - 12, column.width, regular, 8, true);
       } else if (column.key === "name") {
         drawCellText(student.name, cellX, y - 12, column.width, regular, 8, false);
       }

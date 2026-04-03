@@ -9,7 +9,6 @@ interface Student {
   id: string;
   srNo?: string;
   admissionNo?: string;
-  seatNo?: string;
   name: string;
   roll: string;
   year?: string;
@@ -37,7 +36,6 @@ const normalizeStudent = (student: Partial<Student>, index: number): Student => 
   id: String(student.id || index + 1),
   srNo: student.srNo ? String(student.srNo) : "",
   admissionNo: student.admissionNo ? String(student.admissionNo) : student.roll ? String(student.roll) : "",
-  seatNo: student.seatNo ? String(student.seatNo) : "",
   name: student.name ? String(student.name) : "",
   roll: student.roll ? String(student.roll) : student.admissionNo ? String(student.admissionNo) : "",
   year: student.year ? String(student.year) : "",
@@ -85,6 +83,9 @@ const AttendancePage = () => {
         if (rosterList[0]) {
           setSelectedRosterId(rosterList[0].id);
           setStudents(rosterList[0].students);
+          setYear("");
+          setBranch("");
+          setDivision("");
         }
       } catch {
         // Keep empty state if backend store is unavailable.
@@ -125,14 +126,19 @@ const AttendancePage = () => {
       setStudents(normalizedRoster.students);
       setRosters((previous) => [normalizedRoster, ...previous.filter((entry) => entry.id !== normalizedRoster.id)]);
       setSelectedRosterId(normalizedRoster.id);
-      if (!year && normalizedRoster.metadata.years[0]) setYear(normalizedRoster.metadata.years[0]);
-      if (!branch && normalizedRoster.metadata.branches[0]) setBranch(normalizedRoster.metadata.branches[0]);
-      if (!division && normalizedRoster.metadata.divisions[0]) setDivision(normalizedRoster.metadata.divisions[0]);
-      setStatus(`Parsed ${normalizedRoster.metadata.rowsParsed} students from ${normalizedRoster.metadata.sourceFile}.`);
+      setYear("");
+      setBranch("");
+      setDivision("");
+      setStatus(
+        normalizedRoster.metadata.rowsParsed > 0
+          ? `Parsed ${normalizedRoster.metadata.rowsParsed} students from ${normalizedRoster.metadata.sourceFile}.`
+          : `No student rows were found in ${normalizedRoster.metadata.sourceFile}. Please check the file headers.`
+      );
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Failed to parse file.");
     } finally {
       setIsParsing(false);
+      event.target.value = "";
     }
   };
 
@@ -205,7 +211,9 @@ const AttendancePage = () => {
               {isParsing ? "Parsing..." : "Upload CSV / Excel"}
               <input type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={handleUpload} />
             </label>
-            <p className="mt-4 text-sm text-muted-foreground">Upload a class list with columns like name, roll number, year, branch, or division. The backend will normalize it into a selectable roster.</p>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Upload a CSV or Excel file with <span className="font-semibold">Sr.No</span>, <span className="font-semibold">Admission No</span>, and <span className="font-semibold">Name Of the Student</span>. The backend will convert it into a selectable roster.
+            </p>
           {rosters.length > 0 ? (
               <div className="mt-4">
                 <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider">Saved Rosters</label>
@@ -218,6 +226,9 @@ const AttendancePage = () => {
                     const roster = rosters.find((entry) => entry.id === rosterId);
                     if (roster) {
                       setStudents(roster.students);
+                      setYear("");
+                      setBranch("");
+                      setDivision("");
                     }
                   }}
                 >
@@ -299,16 +310,15 @@ const AttendancePage = () => {
             </div>
 
             <div className="max-h-[640px] overflow-y-auto">
-              <div className="grid grid-cols-[52px_72px_140px_120px_1fr] gap-3 border-b-2 border-foreground pb-3 text-xs font-bold uppercase tracking-wider">
+              <div className="grid grid-cols-[52px_72px_160px_1fr] gap-3 border-b-2 border-foreground pb-3 text-xs font-bold uppercase tracking-wider">
                 <span>Select</span>
                 <span>Sr.No</span>
                 <span>Admission</span>
-                <span>Seat No</span>
                 <span>Name</span>
               </div>
               <div className="space-y-2 pt-3">
                 {filteredStudents.map((student) => (
-                  <button key={student.id} onClick={() => toggleStudent(student.id)} className="grid w-full grid-cols-[52px_72px_140px_120px_1fr] gap-3 rounded-none border-2 border-foreground/15 bg-muted/10 p-3 text-left">
+                  <button key={student.id} onClick={() => toggleStudent(student.id)} className="grid w-full grid-cols-[52px_72px_160px_1fr] gap-3 rounded-none border-2 border-foreground/15 bg-muted/10 p-3 text-left">
                     <span className="flex items-center">
                       <input
                         type="checkbox"
@@ -320,7 +330,6 @@ const AttendancePage = () => {
                     </span>
                     <span className="font-mono text-xs">{student.srNo || "-"}</span>
                     <span className="font-mono text-xs">{student.admissionNo || student.roll || "-"}</span>
-                    <span className="font-mono text-xs">{student.seatNo || "-"}</span>
                     <span className="font-medium">{student.name}</span>
                   </button>
                 ))}
