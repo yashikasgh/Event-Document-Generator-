@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import apiApp from "./backend/app.js";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -11,14 +12,17 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
-    proxy: {
-      "/api": {
-        target: "http://localhost:8787",
-        changeOrigin: true,
+  },
+  plugins: [
+    react(),
+    mode === "development" && componentTagger(),
+    {
+      name: "docuprint-api-middleware",
+      configureServer(server) {
+        server.middlewares.use(apiApp);
       },
     },
-  },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  ].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

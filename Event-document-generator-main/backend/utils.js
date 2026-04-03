@@ -99,6 +99,30 @@ const parseDataUri = (value = "") => {
   };
 };
 
+const detectImageType = (bytes) => {
+  if (!bytes || bytes.length < 4) {
+    return null;
+  }
+
+  const isPng =
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47;
+
+  const isJpg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+
+  if (isPng) {
+    return "png";
+  }
+
+  if (isJpg) {
+    return "jpg";
+  }
+
+  return null;
+};
+
 export const buildPdfDocument = async ({
   title,
   collegeName,
@@ -133,20 +157,29 @@ export const buildPdfDocument = async ({
       return;
     }
 
-    const image =
-      parsed.mime === "image/png"
-        ? await pdfDoc.embedPng(parsed.bytes)
-        : await pdfDoc.embedJpg(parsed.bytes);
+    try {
+      const detectedType = detectImageType(parsed.bytes);
+      const image =
+        detectedType === "png"
+          ? await pdfDoc.embedPng(parsed.bytes)
+          : detectedType === "jpg"
+            ? await pdfDoc.embedJpg(parsed.bytes)
+            : parsed.mime === "image/png"
+              ? await pdfDoc.embedPng(parsed.bytes)
+              : await pdfDoc.embedJpg(parsed.bytes);
 
-    const dimensions = image.scaleToFit(52, 52);
-    page.drawImage(image, {
-      x,
-      y: topY - dimensions.height,
-      width: dimensions.width,
-      height: dimensions.height,
-    });
+      const dimensions = image.scaleToFit(52, 52);
+      page.drawImage(image, {
+        x,
+        y: topY - dimensions.height,
+        width: dimensions.width,
+        height: dimensions.height,
+      });
 
-    return true;
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   const drawBadge = (label, x, topY, hexColor) => {

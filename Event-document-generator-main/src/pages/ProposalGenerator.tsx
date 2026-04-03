@@ -97,6 +97,31 @@ const assetUrlToDataUrl = async (assetPath?: string) => {
   }
 };
 
+const resolveLogoAsset = async (basePath?: string) => {
+  if (!basePath) {
+    return "";
+  }
+
+  const candidates = [".png", ".jpg", ".jpeg", ".webp"].map((extension) => `${basePath}${extension}`);
+
+  for (const candidate of candidates) {
+    const value = await assetUrlToDataUrl(candidate);
+    if (value) {
+      return value;
+    }
+  }
+
+  return "";
+};
+
+const resolveLogoPath = (basePath?: string) => {
+  if (!basePath) {
+    return undefined;
+  }
+
+  return `${basePath}.png`;
+};
+
 const createSignatory = (): Signatory => ({
   id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
   name: "",
@@ -146,8 +171,8 @@ const ProposalGenerator = () => {
 
     try {
       const [collegeLogo, clubLogo] = await Promise.all([
-        assetUrlToDataUrl(COLLEGE_BRAND.logoPath),
-        assetUrlToDataUrl(selectedClub.logoPath),
+        resolveLogoAsset(COLLEGE_BRAND.logoBasePath),
+        resolveLogoAsset(selectedClub.logoBasePath),
       ]);
 
       const response = await api.generateProposal({
@@ -246,7 +271,7 @@ const ProposalGenerator = () => {
             <div className="relative">
               <button type="button" onClick={() => setClubMenuOpen((previous) => !previous)} className="brutal-input flex items-center justify-between gap-3 text-left">
                 <span className="flex items-center gap-3">
-                  <LogoBadge label={selectedClub.acronym} hex={selectedClub.hex} logoPath={selectedClub.logoPath} size="sm" />
+                  <LogoBadge label={selectedClub.acronym} hex={selectedClub.hex} logoPath={resolveLogoPath(selectedClub.logoBasePath)} size="sm" />
                   <span>
                     <span className="block font-bold uppercase">{selectedClub.acronym}</span>
                     <span className="block text-xs text-muted-foreground">{selectedClub.name}</span>
@@ -267,7 +292,7 @@ const ProposalGenerator = () => {
                       }}
                       className="flex w-full items-center gap-3 border-b border-foreground/10 px-4 py-3 text-left transition-colors hover:bg-muted/40"
                     >
-                      <LogoBadge label={club.acronym} hex={club.hex} logoPath={club.logoPath} size="sm" />
+                      <LogoBadge label={club.acronym} hex={club.hex} logoPath={resolveLogoPath(club.logoBasePath)} size="sm" />
                       <span>
                         <span className="block font-bold uppercase">{club.acronym}</span>
                         <span className="block text-xs text-muted-foreground">{club.name}</span>
@@ -358,12 +383,12 @@ const ProposalGenerator = () => {
         <motion.div className="space-y-6" initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
           <div className="brutal-card">
             <div className="flex items-start justify-between gap-4 border-b-2 border-foreground pb-5">
-              <LogoBadge label={data.collegeAcronym || "PCE"} hex={COLLEGE_BRAND.hex} logoPath={COLLEGE_BRAND.logoPath} />
+              <LogoBadge label={data.collegeAcronym || "PCE"} hex={COLLEGE_BRAND.hex} logoPath={resolveLogoPath(COLLEGE_BRAND.logoBasePath)} />
               <div className="flex-1 text-center">
                 <h2 className="text-lg font-bold uppercase">{data.collegeName || COLLEGE_BRAND.name}</h2>
                 <p className="mt-1 text-xs text-muted-foreground">{data.collegeAddress || "Add the college address here."}</p>
               </div>
-              <LogoBadge label={selectedClub.acronym} hex={selectedClub.hex} logoPath={selectedClub.logoPath} />
+              <LogoBadge label={selectedClub.acronym} hex={selectedClub.hex} logoPath={resolveLogoPath(selectedClub.logoBasePath)} />
             </div>
 
             <div className="mt-6 space-y-5">
