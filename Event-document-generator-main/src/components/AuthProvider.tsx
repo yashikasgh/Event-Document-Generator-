@@ -21,14 +21,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     let mounted = true;
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) {
-        return;
-      }
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (!mounted) {
+          return;
+        }
 
-      setSession(data.session ?? null);
-      setLoading(false);
-    });
+        setSession(data.session ?? null);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!mounted) {
+          return;
+        }
+
+        setSession(null);
+        setLoading(false);
+      });
 
     const {
       data: { subscription },

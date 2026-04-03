@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
-import { supabase } from "@/lib/supabase";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 type Phase = "intro" | "printer" | "form";
 
@@ -293,37 +293,53 @@ const SignUpForm = ({ onBackToIntro }: { onBackToIntro: () => void }) => {
       return;
     }
 
-    if (mode === "signup") {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-        },
-      });
-
+    if (!isSupabaseConfigured) {
       setSubmitting(false);
-      setStatus(error ? error.message : "Account created. Check your email if confirmation is enabled, then sign in.");
-      if (!error) {
-        setMode("signin");
+      setStatus("Authentication is not configured. Add real VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY values in .env, then restart the app.");
+      return;
+    }
+
+    if (mode === "signup") {
+      try {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+            },
+          },
+        });
+
+        setSubmitting(false);
+        setStatus(error ? error.message : "Account created. Check your email if confirmation is enabled, then sign in.");
+        if (!error) {
+          setMode("signin");
+        }
+      } catch {
+        setSubmitting(false);
+        setStatus("Unable to reach Supabase. Verify internet connection and Supabase URL/key values in .env.");
       }
       return;
     }
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    setSubmitting(false);
-    if (error) {
-      setStatus(error.message);
-      return;
+      setSubmitting(false);
+      if (error) {
+        setStatus(error.message);
+        return;
+      }
+
+      navigate("/dashboard");
+    } catch {
+      setSubmitting(false);
+      setStatus("Unable to reach Supabase. Verify internet connection and Supabase URL/key values in .env.");
     }
-
-    navigate("/dashboard");
   };
 
   return (
