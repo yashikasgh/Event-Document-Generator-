@@ -1,42 +1,13 @@
-import { api } from "@/lib/api";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-export type BudgetProjectItem = {
-  id: string;
-  label: string;
-  quantity: number;
-  unitPrice: number;
-  tax: number;
-  amount: number;
-  notes: string;
-  expenseType: string;
-  vendorName?: string;
-  purchaseDate?: string;
-  paymentMethod?: string;
-  expenseId?: string;
-};
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const dataDirectory = path.resolve(__dirname, "../data");
+const storePath = path.join(dataDirectory, "budget-store.json");
 
-export type StoredBudgetRecord = {
-  id: string;
-  title: string;
-  vendor: string;
-  date: string;
-  category: string;
-  paymentMethod: string;
-  receiptId: string;
-  description?: string;
-  expectedBudget?: number;
-  items: BudgetProjectItem[];
-  subtotal: number;
-  taxTotal: number;
-  discount: number;
-  grandTotal: number;
-  isDraft?: boolean;
-};
-
-export const BUDGET_STORAGE_KEY = "docuprint-budget-records";
-export const BUDGET_CATEGORY_STORAGE_KEY = "docuprint-budget-categories";
-
-export const DEFAULT_BUDGET_CATEGORIES = [
+const defaultCategories = [
   "Fest",
   "Seminar",
   "Repair",
@@ -47,10 +18,7 @@ export const DEFAULT_BUDGET_CATEGORIES = [
   "Hospitality",
 ];
 
-export const EXPENSE_TYPES = ["Food", "Lighting", "Logistics", "Decoration", "Hospitality", "Equipment", "Marketing", "Misc"];
-export const PAYMENT_METHODS = ["Cash", "Card", "Bank Transfer", "UPI", "Cheque", "Pending"];
-
-export const sampleBudgetRecords: StoredBudgetRecord[] = [
+const sampleBudgetRecords = [
   {
     id: "alegria-2024",
     title: "Allegria Fest 2024",
@@ -208,98 +176,37 @@ export const sampleBudgetRecords: StoredBudgetRecord[] = [
   },
 ];
 
-const canUseStorage = () => typeof window !== "undefined" && !!window.localStorage;
-
-const writeCache = (records: StoredBudgetRecord[], categories: string[]) => {
-  if (!canUseStorage()) {
-    return;
-  }
-  window.localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(records));
-  window.localStorage.setItem(BUDGET_CATEGORY_STORAGE_KEY, JSON.stringify(Array.from(new Set(categories))));
+const defaultStore = {
+  categories: defaultCategories,
+  records: sampleBudgetRecords,
 };
 
-export const loadBudgetRecords = (): StoredBudgetRecord[] => {
-  if (!canUseStorage()) {
-    return sampleBudgetRecords;
-  }
+const normalizeStore = (store = {}) => ({
+  categories: Array.from(new Set([...(Array.isArray(store.categories) ? store.categories : []), ...defaultCategories])),
+  records: Array.isArray(store.records) && store.records.length > 0 ? store.records : sampleBudgetRecords,
+});
 
-  const raw = window.localStorage.getItem(BUDGET_STORAGE_KEY);
-  if (!raw) {
-    return sampleBudgetRecords;
-  }
-
+const ensureStoreFile = async () => {
+  await mkdir(dataDirectory, { recursive: true });
   try {
-    const parsed = JSON.parse(raw) as StoredBudgetRecord[];
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : sampleBudgetRecords;
+    const raw = await readFile(storePath, "utf8");
+    const parsed = JSON.parse(raw);
+    const normalized = normalizeStore(parsed);
+    if (JSON.stringify(parsed) !== JSON.stringify(normalized)) {
+      await writeFile(storePath, JSON.stringify(normalized, null, 2), "utf8");
+    }
+    return normalized;
   } catch {
-    return sampleBudgetRecords;
+    await writeFile(storePath, JSON.stringify(defaultStore, null, 2), "utf8");
+    return defaultStore;
   }
 };
 
-export const saveBudgetRecords = (records: StoredBudgetRecord[]) => {
-  if (!canUseStorage()) {
-    return;
-  }
-  window.localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(records));
+export const readBudgetStore = async () => ensureStoreFile();
+
+export const writeBudgetStore = async (nextStore) => {
+  const normalized = normalizeStore(nextStore);
+  await mkdir(dataDirectory, { recursive: true });
+  await writeFile(storePath, JSON.stringify(normalized, null, 2), "utf8");
+  return normalized;
 };
-
-export const loadBudgetCategories = () => {
-  if (!canUseStorage()) {
-    return DEFAULT_BUDGET_CATEGORIES;
-  }
-
-  const raw = window.localStorage.getItem(BUDGET_CATEGORY_STORAGE_KEY);
-  if (!raw) {
-    return DEFAULT_BUDGET_CATEGORIES;
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as string[];
-    const categories = Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_BUDGET_CATEGORIES;
-    return Array.from(new Set([...DEFAULT_BUDGET_CATEGORIES, ...categories]));
-  } catch {
-    return DEFAULT_BUDGET_CATEGORIES;
-  }
-};
-
-export const saveBudgetCategories = (categories: string[]) => {
-  if (!canUseStorage()) {
-    return;
-  }
-  window.localStorage.setItem(BUDGET_CATEGORY_STORAGE_KEY, JSON.stringify(Array.from(new Set(categories))));
-};
-
-export const fetchBudgetStore = async () => {
-  try {
-    const store = await api.getBudgetStore();
-    const records = (store.records as StoredBudgetRecord[]) || sampleBudgetRecords;
-    const categories = Array.from(new Set([...(store.categories || []), ...DEFAULT_BUDGET_CATEGORIES]));
-    writeCache(records, categories);
-    return { records, categories };
-  } catch {
-    return {
-      records: loadBudgetRecords(),
-      categories: loadBudgetCategories(),
-    };
-  }
-};
-
-export const persistBudgetStore = async (records: StoredBudgetRecord[], categories: string[]) => {
-  writeCache(records, categories);
-  try {
-    const store = await api.saveBudgetStore({ records, categories });
-    const nextRecords = (store.records as StoredBudgetRecord[]) || records;
-    const nextCategories = Array.from(new Set([...(store.categories || categories), ...DEFAULT_BUDGET_CATEGORIES]));
-    writeCache(nextRecords, nextCategories);
-    return { records: nextRecords, categories: nextCategories };
-  } catch (error) {
-    throw error instanceof Error ? error : new Error("Failed to save budget changes.");
-  }
-};
-
-export const formatBudgetCurrency = (value: number) =>
-  new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(value || 0);

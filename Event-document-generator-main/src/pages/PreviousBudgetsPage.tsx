@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { StoredBudgetRecord, formatBudgetCurrency, loadBudgetCategories, loadBudgetRecords, saveBudgetRecords } from "@/lib/budgetStorage";
+import { StoredBudgetRecord, fetchBudgetStore, formatBudgetCurrency, persistBudgetStore } from "@/lib/budgetStorage";
 
 const PreviousBudgetsPage = () => {
   const navigate = useNavigate();
@@ -38,11 +38,11 @@ const PreviousBudgetsPage = () => {
   const [pendingDeleteExpenseId, setPendingDeleteExpenseId] = useState("");
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const loaded = loadBudgetRecords();
-      setRecords(loaded);
-      setCategories(loadBudgetCategories());
-      setSelectedRecordId(loaded[0]?.id || "");
+    const timer = window.setTimeout(async () => {
+      const { records: loadedRecords, categories: loadedCategories } = await fetchBudgetStore();
+      setRecords(loadedRecords);
+      setCategories(loadedCategories);
+      setSelectedRecordId(loadedRecords[0]?.id || "");
       setLoading(false);
     }, 250);
     return () => window.clearTimeout(timer);
@@ -65,17 +65,22 @@ const PreviousBudgetsPage = () => {
 
   const selected = filtered.find((record) => record.id === selectedRecordId) || filtered[0];
 
-  const removeRecord = (recordId: string) => {
+  const removeRecord = async (recordId: string) => {
     const updated = records.filter((record) => record.id !== recordId);
-    setRecords(updated);
-    saveBudgetRecords(updated);
-    setSelectedRecordId(updated[0]?.id || "");
-    setPendingDeleteRecordId("");
-    setIsDetailsOpen(false);
-    toast.success("Budget folder deleted.");
+    try {
+      const store = await persistBudgetStore(updated, categories);
+      setRecords(store.records);
+      setCategories(store.categories);
+      setSelectedRecordId(store.records[0]?.id || "");
+      setPendingDeleteRecordId("");
+      setIsDetailsOpen(false);
+      toast.success("Budget folder deleted.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete budget folder.");
+    }
   };
 
-  const removeExpense = (recordId: string, expenseId: string) => {
+  const removeExpense = async (recordId: string, expenseId: string) => {
     const updated = records.map((record) =>
       record.id !== recordId
         ? record
@@ -84,10 +89,15 @@ const PreviousBudgetsPage = () => {
             items: record.items.filter((item) => item.id !== expenseId),
           }
     );
-    setRecords(updated);
-    saveBudgetRecords(updated);
-    setPendingDeleteExpenseId("");
-    toast.success("Expense deleted from folder.");
+    try {
+      const store = await persistBudgetStore(updated, categories);
+      setRecords(store.records);
+      setCategories(store.categories);
+      setPendingDeleteExpenseId("");
+      toast.success("Expense deleted from folder.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete expense.");
+    }
   };
 
   if (loading) {

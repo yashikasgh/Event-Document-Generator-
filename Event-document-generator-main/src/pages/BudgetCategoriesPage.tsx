@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, FlaskConical, GraduationCap, Megaphone, PartyPopper, Plus, Trophy, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import BudgetWorkspaceShell from "@/components/BudgetWorkspaceShell";
-import { formatBudgetCurrency, loadBudgetCategories, loadBudgetRecords, saveBudgetCategories, StoredBudgetRecord } from "@/lib/budgetStorage";
+import { fetchBudgetStore, formatBudgetCurrency, persistBudgetStore, StoredBudgetRecord } from "@/lib/budgetStorage";
 
 const iconMap: Record<string, typeof PartyPopper> = {
   Fest: PartyPopper,
@@ -23,8 +23,12 @@ const BudgetCategoriesPage = () => {
   const [expandedFolderId, setExpandedFolderId] = useState("");
 
   useEffect(() => {
-    setCategories(loadBudgetCategories());
-    setRecords(loadBudgetRecords());
+    const hydrate = async () => {
+      const { categories: loadedCategories, records: loadedRecords } = await fetchBudgetStore();
+      setCategories(loadedCategories);
+      setRecords(loadedRecords);
+    };
+    hydrate();
   }, []);
 
   const counts = useMemo(() => {
@@ -41,17 +45,22 @@ const BudgetCategoriesPage = () => {
     return grouped;
   }, [records]);
 
-  const addCategory = () => {
+  const addCategory = async () => {
     const value = newCategory.trim();
     if (!value) {
       toast.error("Enter a category name first.");
       return;
     }
     const updated = Array.from(new Set([...categories, value]));
-    setCategories(updated);
-    saveBudgetCategories(updated);
-    setNewCategory("");
-    toast.success("Category added.");
+    try {
+      const store = await persistBudgetStore(records, updated);
+      setCategories(store.categories);
+      setRecords(store.records);
+      setNewCategory("");
+      toast.success("Category added.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to add category.");
+    }
   };
 
   return (

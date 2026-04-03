@@ -17,11 +17,9 @@ import {
   EXPENSE_TYPES,
   PAYMENT_METHODS,
   StoredBudgetRecord,
+  fetchBudgetStore,
   formatBudgetCurrency,
-  loadBudgetCategories,
-  loadBudgetRecords,
-  saveBudgetCategories,
-  saveBudgetRecords,
+  persistBudgetStore,
 } from "@/lib/budgetStorage";
 
 type ExpenseForm = {
@@ -60,22 +58,25 @@ const BudgetPlannerPage = () => {
   const [pendingDeleteExpenseId, setPendingDeleteExpenseId] = useState("");
 
   useEffect(() => {
-    const loadedCategories = loadBudgetCategories();
-    const loadedRecords = loadBudgetRecords();
-    const draftId = searchParams.get("draft") || "";
-    const draft = loadedRecords.find((record) => record.id === draftId);
+    const hydrate = async () => {
+      const { categories: loadedCategories, records: loadedRecords } = await fetchBudgetStore();
+      const draftId = searchParams.get("draft") || "";
+      const draft = loadedRecords.find((record) => record.id === draftId);
 
-    setCategories(loadedCategories);
-    setRecords(loadedRecords);
-    setFolderCategory(draft?.category || loadedCategories[0] || "Fest");
-    setCurrentDraftId(draft?.id || "");
-    setFolderTitle(draft?.title || "");
-    setExpectedBudget(draft?.expectedBudget ? String(draft.expectedBudget) : "");
-    setDescription(draft?.description || "");
-    setExpenseForm((current) => ({
-      ...current,
-      folderId: draft?.id || loadedRecords[0]?.id || "",
-    }));
+      setCategories(loadedCategories);
+      setRecords(loadedRecords);
+      setFolderCategory(draft?.category || loadedCategories[0] || "Fest");
+      setCurrentDraftId(draft?.id || "");
+      setFolderTitle(draft?.title || "");
+      setExpectedBudget(draft?.expectedBudget ? String(draft.expectedBudget) : "");
+      setDescription(draft?.description || "");
+      setExpenseForm((current) => ({
+        ...current,
+        folderId: draft?.id || loadedRecords[0]?.id || "",
+      }));
+    };
+
+    hydrate();
   }, [searchParams]);
 
   const availableFolders = useMemo(() => records, [records]);
@@ -103,18 +104,23 @@ const BudgetPlannerPage = () => {
     [records, todayLabel]
   );
 
-  const addCategory = () => {
+  const addCategory = async () => {
     const value = newCategory.trim();
     if (!value) {
       toast.error("Enter a category name first.");
       return;
     }
     const updated = Array.from(new Set([...categories, value]));
-    setCategories(updated);
-    setFolderCategory(value);
-    setNewCategory("");
-    saveBudgetCategories(updated);
-    toast.success("Category added.");
+    try {
+      const store = await persistBudgetStore(records, updated);
+      setCategories(store.categories);
+      setRecords(store.records);
+      setFolderCategory(value);
+      setNewCategory("");
+      toast.success("Category added.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to add category.");
+    }
   };
 
   const buildDraftRecord = (): StoredBudgetRecord => ({
@@ -135,7 +141,7 @@ const BudgetPlannerPage = () => {
     isDraft: true,
   });
 
-  const saveFolder = () => {
+  const saveFolder = async () => {
     if (!folderTitle.trim()) {
       toast.error("Enter a folder name before saving.");
       return;
@@ -146,15 +152,20 @@ const BudgetPlannerPage = () => {
       ? records.map((entry) => (entry.id === currentDraftId ? { ...entry, ...record } : entry))
       : [record, ...records];
 
-    setRecords(updated);
-    saveBudgetRecords(updated);
-    setCurrentDraftId(record.id);
-    setExpenseForm((current) => ({ ...current, folderId: record.id }));
-    setSearchParams({ draft: record.id });
-    toast.success("Folder saved. You can add expenses later.");
+    try {
+      const store = await persistBudgetStore(updated, categories);
+      setRecords(store.records);
+      setCategories(store.categories);
+      setCurrentDraftId(record.id);
+      setExpenseForm((current) => ({ ...current, folderId: record.id }));
+      setSearchParams({ draft: record.id });
+      toast.success("Folder saved. You can add expenses later.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to save folder.");
+    }
   };
 
-  const addExpenseToFolder = () => {
+  const addExpenseToFolder = async () => {
     const targetFolderId = expenseForm.folderId || currentDraftId;
     if (!targetFolderId) {
       toast.error("Create or select a folder first.");
@@ -206,13 +217,18 @@ const BudgetPlannerPage = () => {
       };
     });
 
-    setRecords(updated);
-    saveBudgetRecords(updated);
-    setExpenseForm((current) => ({ ...emptyExpense(), folderId: targetFolderId }));
-    toast.success("Expense added to the selected folder.");
+    try {
+      const store = await persistBudgetStore(updated, categories);
+      setRecords(store.records);
+      setCategories(store.categories);
+      setExpenseForm((current) => ({ ...emptyExpense(), folderId: targetFolderId }));
+      toast.success("Expense added to the selected folder.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to add expense.");
+    }
   };
 
-  const deleteExpenseFromFolder = () => {
+  const deleteExpenseFromFolder = async () => {
     if (!pendingDeleteExpenseId || !selectedFolder) {
       return;
     }
@@ -229,10 +245,15 @@ const BudgetPlannerPage = () => {
       };
     });
 
-    setRecords(updated);
-    saveBudgetRecords(updated);
-    setPendingDeleteExpenseId("");
-    toast.success("Expense deleted.");
+    try {
+      const store = await persistBudgetStore(updated, categories);
+      setRecords(store.records);
+      setCategories(store.categories);
+      setPendingDeleteExpenseId("");
+      toast.success("Expense deleted.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete expense.");
+    }
   };
 
   return (

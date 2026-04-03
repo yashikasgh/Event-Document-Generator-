@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import BudgetWorkspaceShell from "@/components/BudgetWorkspaceShell";
 import { createBudgetPdfObjectUrl, exportBudgetExcel, exportBudgetPdf } from "@/lib/budgetExports";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { StoredBudgetRecord, formatBudgetCurrency, loadBudgetRecords } from "@/lib/budgetStorage";
+import { fetchBudgetStore, StoredBudgetRecord, formatBudgetCurrency } from "@/lib/budgetStorage";
 
 const BudgetReportsPage = () => {
   const [records, setRecords] = useState<StoredBudgetRecord[]>([]);
@@ -12,7 +12,11 @@ const BudgetReportsPage = () => {
   const [previewTitle, setPreviewTitle] = useState("");
 
   useEffect(() => {
-    setRecords(loadBudgetRecords());
+    const hydrate = async () => {
+      const { records: loadedRecords } = await fetchBudgetStore();
+      setRecords(loadedRecords);
+    };
+    hydrate();
   }, []);
 
   return (

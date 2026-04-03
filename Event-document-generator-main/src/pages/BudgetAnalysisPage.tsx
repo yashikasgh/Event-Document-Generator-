@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import BudgetWorkspaceShell from "@/components/BudgetWorkspaceShell";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { api } from "@/lib/api";
-import { formatBudgetCurrency, StoredBudgetRecord, loadBudgetCategories, loadBudgetRecords } from "@/lib/budgetStorage";
+import { fetchBudgetStore, formatBudgetCurrency, StoredBudgetRecord } from "@/lib/budgetStorage";
 
 const ANALYSIS_COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))"];
 
@@ -32,11 +32,13 @@ const BudgetAnalysisPage = () => {
   const [result, setResult] = useState<AnalysisResult | null>(null);
 
   useEffect(() => {
-    const loadedRecords = loadBudgetRecords();
-    const loadedCategories = loadBudgetCategories();
-    setRecords(loadedRecords);
-    setCategories(loadedCategories);
-    setSelectedCategory(loadedCategories[0] || "");
+    const hydrate = async () => {
+      const { records: loadedRecords, categories: loadedCategories } = await fetchBudgetStore();
+      setRecords(loadedRecords);
+      setCategories(loadedCategories);
+      setSelectedCategory(loadedCategories[0] || "");
+    };
+    hydrate();
   }, []);
 
   const categoryFolders = useMemo(

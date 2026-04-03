@@ -4,6 +4,7 @@ import multer from "multer";
 import { config } from "./config.js";
 import { bufferToBase64 } from "./utils.js";
 import { generateBudgetEstimationDocument, generateBudgetReportDocument, generateProposalDocument, generateReportDocument } from "./services/documents.js";
+import { readBudgetStore, writeBudgetStore } from "./services/budgetStore.js";
 import { analyzeBudget, analyzeBudgetFolder, buildTimeline, compilePostEventSummary, estimateBudgetFromHistory, parseBudgetCsv } from "./services/planning.js";
 import { parseAttendanceFile, buildAttendancePdf } from "./services/attendance.js";
 import { generateFlyerConcept } from "./services/flyers.js";
@@ -21,6 +22,22 @@ app.get("/api/health", (_req, res) => {
     service: config.appName,
     date: new Date().toISOString(),
   });
+});
+
+app.get("/api/budget/store", async (_req, res, next) => {
+  try {
+    res.json(await readBudgetStore());
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.put("/api/budget/store", async (req, res, next) => {
+  try {
+    res.json(await writeBudgetStore(req.body || {}));
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.post("/api/documents/proposal", async (req, res, next) => {

@@ -77,6 +77,8 @@ async function requestJson<T>(
 
 export const api = {
   health: () => requestJson<{ ok: boolean; service: string; date: string }>("/health"),
+  getBudgetStore: () => requestJson<{ categories: string[]; records: Array<Record<string, unknown>> }>("/budget/store"),
+  saveBudgetStore: (body: unknown) => requestJson<{ categories: string[]; records: Array<Record<string, unknown>> }>("/budget/store", { method: "PUT", body }),
   generateProposal: (body: unknown) =>
     requestJson<{ fileName: string; pdfBase64: string; summary: Record<string, unknown>; narrative: string[] }>("/documents/proposal", {
       method: "POST",

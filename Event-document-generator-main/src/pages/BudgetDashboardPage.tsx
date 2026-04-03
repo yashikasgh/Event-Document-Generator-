@@ -4,7 +4,7 @@ import { Bar, BarChart, Cell, Tooltip, XAxis, YAxis } from "recharts";
 import BudgetWorkspaceShell from "@/components/BudgetWorkspaceShell";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StoredBudgetRecord, formatBudgetCurrency, loadBudgetRecords } from "@/lib/budgetStorage";
+import { fetchBudgetStore, StoredBudgetRecord, formatBudgetCurrency } from "@/lib/budgetStorage";
 import { getBudgetTotals, getCategorySpend, getMonthlyExpenses, getRecentActivity } from "@/lib/budgetMetrics";
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))", "#111111", "#757575", "#e67e22", "#0f766e", "#d97706"];
@@ -14,8 +14,9 @@ const BudgetDashboardPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setRecords(loadBudgetRecords());
+    const timer = window.setTimeout(async () => {
+      const { records: loadedRecords } = await fetchBudgetStore();
+      setRecords(loadedRecords);
       setLoading(false);
     }, 250);
 

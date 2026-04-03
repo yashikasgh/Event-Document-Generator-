@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import BudgetWorkspaceShell from "@/components/BudgetWorkspaceShell";
 import { api, base64PdfToObjectUrl, downloadBase64Pdf } from "@/lib/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { formatBudgetCurrency, loadBudgetCategories, loadBudgetRecords, StoredBudgetRecord } from "@/lib/budgetStorage";
+import { fetchBudgetStore, formatBudgetCurrency, StoredBudgetRecord } from "@/lib/budgetStorage";
 import { COLLEGE_BRAND } from "@/lib/clubs";
 
 type EstimateResponse = {
@@ -25,10 +25,13 @@ const BudgetEstimationPage = () => {
   const [previewUrl, setPreviewUrl] = useState("");
 
   useEffect(() => {
-    const loadedCategories = loadBudgetCategories();
-    setCategories(loadedCategories);
-    setHistory(loadBudgetRecords());
-    setEventType(loadedCategories[0] || "Fest");
+    const hydrate = async () => {
+      const { categories: loadedCategories, records: loadedRecords } = await fetchBudgetStore();
+      setCategories(loadedCategories);
+      setHistory(loadedRecords);
+      setEventType(loadedCategories[0] || "Fest");
+    };
+    hydrate();
   }, []);
 
   const generateEstimate = async () => {
