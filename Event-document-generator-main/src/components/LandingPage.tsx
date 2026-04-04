@@ -61,7 +61,7 @@ const teamMembers = [
   },
 ];
 
-const footerLink = "https://www.pccoepune.com/";
+const footerLink = "https://www.pce.ac.in/";
 
 const formatAuthError = (message: string) => {
   const normalized = String(message || "").toLowerCase();
@@ -322,20 +322,20 @@ const SignUpForm = ({ onBackToIntro }: { onBackToIntro: () => void }) => {
       return;
     }
 
-    if (mode === "signup" && safePassword.length < 8) {
-      setSubmitting(false);
-      setStatus("Use a password with at least 8 characters.");
-      return;
-    }
-
     if (!isSupabaseConfigured) {
       setSubmitting(false);
       setStatus("Authentication is not configured. Add real VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY values in .env, then restart the app.");
       return;
     }
 
-    if (mode === "signup") {
-      try {
+    if (mode === "signup" && safePassword.length < 8) {
+      setSubmitting(false);
+      setStatus("Use a password with at least 8 characters.");
+      return;
+    }
+
+    try {
+      if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
           email: safeEmail,
           password: safePassword,
@@ -355,21 +355,15 @@ const SignUpForm = ({ onBackToIntro }: { onBackToIntro: () => void }) => {
               ? "Account created successfully. You are now signed in."
               : "Account created. Check your email for the confirmation link, then come back and sign in."
         );
-        if (!error) {
-          setMode(data.session ? "signin" : "signin");
-        }
-      } catch {
-        setSubmitting(false);
-        setStatus("Unable to reach Supabase. Verify internet connection and Supabase URL/key values in .env.");
+        return;
       }
-      return;
-    }
 
-    try {
       const { error } = await supabase.auth.signInWithPassword({
         email: safeEmail,
         password: safePassword,
       });
+
+      console.log("Sign in error:", error); // Add this for debugging
 
       setSubmitting(false);
       if (error) {
