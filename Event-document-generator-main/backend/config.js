@@ -10,6 +10,10 @@ const toNumber = (value, fallback) => {
 
 export const config = {
   port: toNumber(process.env.PORT, 8787),
+  openaiApiKey:
+    process.env.OPENAI_API_KEY ||
+    process.env.OPENAI_API_KEY_FLYERS ||
+    "",
   geminiApiKey:
     process.env.GEMINI_API_KEY ||
     process.env.GOOGLE_API_KEY ||

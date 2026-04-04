@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
-import { supabase } from "@/lib/supabase";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 type Phase = "intro" | "printer" | "form";
 
@@ -62,6 +62,32 @@ const teamMembers = [
 ];
 
 const footerLink = "https://www.pce.ac.in/";
+
+const formatAuthError = (message: string) => {
+  const normalized = String(message || "").toLowerCase();
+
+  if (normalized.includes("email not confirmed")) {
+    return "Your email is not confirmed yet. Open the verification email first, then sign in.";
+  }
+
+  if (normalized.includes("invalid login credentials")) {
+    return "The email or password is incorrect. Double-check both and try again.";
+  }
+
+  if (normalized.includes("password should be at least")) {
+    return "Password is too short. Use at least 8 characters.";
+  }
+
+  if (normalized.includes("user already registered")) {
+    return "This email is already registered. Try signing in instead.";
+  }
+
+  if (normalized.includes("signup is disabled")) {
+    return "Email sign-up is disabled in Supabase right now. Enable Email auth in your Supabase project settings.";
+  }
+
+  return message;
+};
 
 const introMotion = {
   hidden: { opacity: 0, y: 22 },
@@ -286,48 +312,70 @@ const SignUpForm = ({ onBackToIntro }: { onBackToIntro: () => void }) => {
   const handleSubmit = async () => {
     setSubmitting(true);
     setStatus("");
+    const safeFullName = fullName.trim();
+    const safeEmail = email.trim().toLowerCase();
+    const safePassword = password;
 
-    if (!email || !password || (mode === "signup" && !fullName)) {
+    if (!safeEmail || !safePassword || (mode === "signup" && !safeFullName)) {
       setSubmitting(false);
       setStatus("Please fill all required fields.");
       return;
     }
 
-    if (mode === "signup") {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
+    if (!isSupabaseConfigured) {
+      setSubmitting(false);
+      setStatus("Authentication is not configured. Add real VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY values in .env, then restart the app.");
+      return;
+    }
+
+    if (mode === "signup" && safePassword.length < 8) {
+      setSubmitting(false);
+      setStatus("Use a password with at least 8 characters.");
+      return;
+    }
+
+    try {
+      if (mode === "signup") {
+        const { data, error } = await supabase.auth.signUp({
+          email: safeEmail,
+          password: safePassword,
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: {
+              full_name: safeFullName,
+            },
           },
-        },
+        });
+
+        setSubmitting(false);
+        setStatus(
+          error
+            ? formatAuthError(error.message)
+            : data.session
+              ? "Account created successfully. You are now signed in."
+              : "Account created. Check your email for the confirmation link, then come back and sign in."
+        );
+        return;
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: safeEmail,
+        password: safePassword,
       });
 
-      console.log("Sign up result:", { data, error }); // Add this for debugging
+      console.log("Sign in error:", error); // Add this for debugging
 
       setSubmitting(false);
-      setStatus(error ? error.message : "Account created. Check your email if confirmation is enabled, then sign in.");
-      if (!error) {
-        setMode("signin");
+      if (error) {
+        setStatus(formatAuthError(error.message));
+        return;
       }
-      return;
+
+      navigate("/dashboard");
+    } catch {
+      setSubmitting(false);
+      setStatus("Unable to reach Supabase. Verify internet connection and Supabase URL/key values in .env.");
     }
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    console.log("Sign in error:", error); // Add this for debugging
-
-    setSubmitting(false);
-    if (error) {
-      setStatus(error.message);
-      return;
-    }
-
-    navigate("/dashboard");
   };
 
   return (
@@ -369,16 +417,16 @@ const SignUpForm = ({ onBackToIntro }: { onBackToIntro: () => void }) => {
             {mode === "signup" ? (
               <div>
                 <label className="mb-2 block text-sm font-bold uppercase tracking-wider">Full Name</label>
-                <input type="text" placeholder="Jane Doe" className="brutal-input" value={fullName} onChange={(event) => setFullName(event.target.value)} />
+                <input type="text" placeholder="Jane Doe" className="brutal-input" value={fullName} onChange={(event) => setFullName(event.target.value)} onKeyDown={(event) => event.key === "Enter" && handleSubmit()} />
               </div>
             ) : null}
             <div>
               <label className="mb-2 block text-sm font-bold uppercase tracking-wider">Email</label>
-              <input type="email" placeholder="jane@school.edu" className="brutal-input" value={email} onChange={(event) => setEmail(event.target.value)} />
+              <input type="email" placeholder="jane@school.edu" className="brutal-input" value={email} onChange={(event) => setEmail(event.target.value)} onKeyDown={(event) => event.key === "Enter" && handleSubmit()} />
             </div>
             <div>
               <label className="mb-2 block text-sm font-bold uppercase tracking-wider">Password</label>
-              <input type="password" placeholder="Create a secure password" className="brutal-input" value={password} onChange={(event) => setPassword(event.target.value)} />
+              <input type="password" placeholder="Create a secure password" className="brutal-input" value={password} onChange={(event) => setPassword(event.target.value)} onKeyDown={(event) => event.key === "Enter" && handleSubmit()} />
             </div>
           </div>
 
@@ -389,7 +437,10 @@ const SignUpForm = ({ onBackToIntro }: { onBackToIntro: () => void }) => {
             <p className="text-center text-sm font-mono text-muted-foreground">
               {mode === "signup" ? "Already have an account?" : "Need a new account?"}{" "}
               <button
-                onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
+                onClick={() => {
+                  setMode(mode === "signup" ? "signin" : "signup");
+                  setStatus("");
+                }}
                 className="font-bold text-primary underline decoration-2 underline-offset-4"
               >
                 {mode === "signup" ? "Sign in" : "Create one"}

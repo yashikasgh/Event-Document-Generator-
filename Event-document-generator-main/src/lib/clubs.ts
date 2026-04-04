@@ -18,7 +18,7 @@ export const CLUBS: ClubOption[] = [
 
 export const COLLEGE_BRAND = {
   name: "Pillai College of Engineering",
-  address: "",
+  address: "Dr. K. M. Vasudevan Pillai Campus, Plot No. 10, Sector 16, New Panvel East, Panvel, Maharashtra 410206",
   acronym: "PCE",
   hex: "#111827",
   logoBasePath: "/logos/college/pce",

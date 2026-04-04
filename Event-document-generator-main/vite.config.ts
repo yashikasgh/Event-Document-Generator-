@@ -41,6 +41,10 @@ export default defineConfig(({ mode }) => ({
             return "charts";
           }
 
+          if (id.includes("xlsx") || id.includes("pdf-lib")) {
+            return "exports";
+          }
+
           if (id.includes("@supabase")) {
             return "supabase";
           }

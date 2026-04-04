@@ -1,4 +1,4 @@
-import { buildPdfDocument, clampText, formatCurrency, normalizeDate, safeArray } from "../utils.js";
+import { buildBudgetEstimatePdf, buildBudgetSheetPdf, buildPdfDocument, clampText, formatCurrency, normalizeDate, safeArray } from "../utils.js";
 import { generateProposalNarrative } from "./ai.js";
 
 const buildReportParagraphs = (payload) => {
@@ -90,6 +90,62 @@ export const generateReportDocument = async (payload) => {
       totalAttendees: payload.totalAttendees || null,
       actualSpend: payload.actualSpend ? formatCurrency(payload.actualSpend) : null,
       keyHighlights: safeArray(payload.keyHighlights),
+    },
+    pdfBuffer,
+  };
+};
+
+export const generateBudgetReportDocument = async (payload) => {
+  const records = safeArray(payload.records);
+  const resolvedTitle =
+    payload.title ||
+    (records.length === 1 ? `${records[0].title} Budget Report` : "College Budget Expenditure Report");
+
+  const pdfBuffer = await buildBudgetSheetPdf({
+    collegeName: payload.collegeName,
+    collegeAddress: payload.collegeAddress,
+    date: payload.date,
+    title: resolvedTitle,
+    collegeLogo: payload.collegeLogo,
+    collegeAcronym: payload.collegeAcronym,
+    collegeBrandColor: payload.collegeBrandColor,
+    records,
+  });
+
+  return {
+    fileName: `${resolvedTitle.replace(/\s+/g, "-").toLowerCase()}.pdf`,
+    summary: {
+      title: resolvedTitle,
+      records: records.length,
+      generatedOn: normalizeDate(payload.date),
+    },
+    pdfBuffer,
+  };
+};
+
+export const generateBudgetEstimationDocument = async (payload) => {
+  const pdfBuffer = await buildBudgetEstimatePdf({
+    collegeName: payload.collegeName,
+    collegeAddress: payload.collegeAddress,
+    date: payload.date,
+    title: payload.title || "Budget Estimation Report",
+    collegeLogo: payload.collegeLogo,
+    collegeAcronym: payload.collegeAcronym,
+    collegeBrandColor: payload.collegeBrandColor,
+    eventType: payload.eventType,
+    attendees: payload.attendees,
+    summary: payload.summary,
+    estimatedTotalFormatted: payload.estimatedTotalFormatted,
+    breakdown: safeArray(payload.breakdown),
+    recommendations: safeArray(payload.recommendations),
+  });
+
+  return {
+    fileName: `${(payload.title || "budget-estimation-report").replace(/\s+/g, "-").toLowerCase()}.pdf`,
+    summary: {
+      title: payload.title || "Budget Estimation Report",
+      eventType: payload.eventType || null,
+      generatedOn: normalizeDate(payload.date),
     },
     pdfBuffer,
   };
